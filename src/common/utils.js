@@ -1,6 +1,6 @@
 export const extractErrors = err => {
   return err.inner.reduce((acc, err) => {
-    return { ...acc, [err.path]: err.message };
+    return { ...acc, [err.path.split('.')[0]]: err.message };
   }, {});
 };
 
@@ -37,3 +37,31 @@ export const getCookie = name => {
   return match ? match[1] : null;
 };
 */
+
+export const getDataForAuth = () => {
+  console.log('getDataForAuth');
+
+  const userFromLocalStorage = process.browser ? JSON.parse(localStorage.getItem('user')) : null;
+
+  const { accessToken, companyUuid } = userFromLocalStorage;
+
+  return { accessToken, companyUuid };
+};
+
+/**
+ * function to get something from the object path when the object is parsed.
+ *
+ * @param {object} [object={}]
+ * @param {string} [path='']
+ * @returns {any}
+ */
+export const getFromObjectPathParsed = (object = {}, path = '') => {
+  const keysToEvaluete = path.split('.');
+
+  let iteraingObject = object;
+  for (const key of keysToEvaluete) {
+    iteraingObject = iteraingObject[key];
+    if (!iteraingObject) return;
+  }
+  return iteraingObject;
+};

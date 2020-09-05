@@ -1,76 +1,114 @@
+import axios from 'axios';
+import { getDataForAuth } from '../../common/utils';
+import { API_URL } from '../../config';
+
 class CompanyService {
   constructor() {
     this.companies = [
       {
         id: 1,
         name: 'Pepito perez LTDA',
-        uuid: '01C'
+        uuid: '01C',
+        countryCode: 'MX'
       },
       {
         id: 2,
         name: 'Si señor S.A.S',
-        uuid: '02C'
+        uuid: '02C',
+        countryCode: 'MX'
       },
       {
         id: 3,
         name: 'Hola soy yo S.A.S',
-        uuid: '03C'
+        uuid: '03C',
+        countryCode: 'MX'
       }
     ];
+
+    this.baseUrl = API_URL;
   }
 
   async getCompanies() {
-    return Promise.resolve(this.companies);
+    const dataForAuth = getDataForAuth();
+
+    if (!dataForAuth) {
+      throw new Error('can not get data for auth.');
+    }
+
+    const { accessToken, companyUuid } = dataForAuth;
+
+    const response = await axios({
+      url: `${this.baseUrl}companies`,
+      headers: {
+        'Authorization': accessToken
+      }
+    });
+
+    const { data } = response;
+
+    return data;
   }
 
   async createCompany(company) {
-    this.companies = [
-      ...this.companies,
-      {
-        ...company,
-        id: this.companies[this.companies.length - 1].id + 1
+    const response = await axios({
+      url: `${this.baseUrl}companies`,
+      method: 'post',
+      data: {
+        ...company
       }
-    ];
+    });
 
-    return Promise.resolve(this.companies[this.companies.length - 1]);
+    const { data } = response;
+
+    return data;
   }
 
   async updateCompany(id, company) {
-    const existing = this.companies.find(item => item.id === id);
+    const dataForAuth = getDataForAuth();
 
-    if (!existing) {
-      throw new Error(`can not get the company ${id}`);
+    if (!dataForAuth) {
+      throw new Error('can not get data for auth.');
     }
 
-    let updated = {};
+    const { accessToken, companyUuid } = dataForAuth;
 
-    this.companies = this.companies.map(item => {
-      if (item.id === id) {
-        updated = {
-          ...item,
-          ...company,
-          id: item.id
-        };
 
-        return updated;
+    const response = await axios({
+      url: `${this.baseUrl}companies/${id}`,
+      method: 'patch',
+      headers: {
+        'Authorization': accessToken
+      },
+      data: {
+        ...company
       }
-
-      return item;
     });
 
-    return Promise.resolve(updated);
+    const { data } = response;
+
+    return data;
   }
 
   async removeCompany(id) {
-    const existing = this.companies.find(item => item.id === id);
+    const dataForAuth = getDataForAuth();
 
-    if (!existing) {
-      throw new Error(`can not get the company ${id}`);
+    if (!dataForAuth) {
+      throw new Error('can not get data for auth.');
     }
 
-    this.companies = this.companies.filter(item => item.id !== existing.id);
+    const { accessToken, companyUuid } = dataForAuth;
 
-    return Promise.resolve(existing);
+    const response = await axios({
+      url: `${this.baseUrl}companies/${id}`,
+      method: 'delete',
+      headers: {
+        'Authorization': accessToken
+      }
+    });
+
+    const { data } = response;
+
+    return data;
   }
 }
 

@@ -12,11 +12,11 @@ class UserService {
       id: 1,
       email,
       fullName: 'Hola Divelo',
-      accessToken: 'kdhfjksdhflkhasdkjlfhasjklf'
+      accessToken: 'divelo',
+      companyUuid: 'iosddiosdio'
     };
 
     if (process.browser) {
-      console.log(process.browser, 'process.browser');
       localStorage.setItem('user', JSON.stringify(data));
     }
 

@@ -1,6 +1,7 @@
 <script>
   import { createEventDispatcher } from "svelte";
   import Icon from "svelte-awesome/components/Icon.svelte";
+  import Select from 'svelte-select';
   import {
     plus as plusIcon,
     pencil as penIcon,
@@ -9,13 +10,14 @@
 
   const dispatch = createEventDispatcher();
 
+  export let title = 'Default';
   export let columns = [];
   export let rows = [];
   export let limit = 10;
   export let actions = [];
 
   let filterKey = "";
-  let sortKey = "";
+  let sortKey = undefined;
   let currentPage = 1;
   let skip = 0;
 
@@ -26,19 +28,16 @@
     if (filterKey) {
       filteredRows = rows.filter((row) => {
         return Object.keys(row).some((key) => {
-          console.log(
-            String(row[key]).toLowerCase().indexOf(filterKey),
-            "test"
-          );
           return String(row[key]).toLowerCase().indexOf(filterKey) > -1;
         });
       });
     }
 
     if (sortKey) {
+      const valueToSort = sortKey.value;
       filteredRows = rows.slice().sort((a, b) => {
-        a = a[sortKey];
-        b = b[sortKey];
+        a = a[valueToSort];
+        b = b[valueToSort];
         return (a === b ? 0 : a > b ? 1 : -1) * 1;
       });
     }
@@ -47,24 +46,24 @@
   }
 
   $: createAction = actions.reduce((pre, cur) => {
-    console.log(cur, "cur", cur.includes("create"));
     if (cur.includes("create")) {
-      console.log("sizas");
       return cur;
     } else return pre;
   }, "");
 
   function handleDispatch(action, row) {
-    console.log(createAction, "createAction");
     dispatch("message", {
       action,
-      row,
+      row: { ...row },
     });
   }
 </script>
 
 <div class="container">
   <div class="row">
+    <div class="col-12">
+      <h1>{title}</h1>
+    </div>
     <div class="col-sm-12 col-md-4">
       <div class="form-group">
         <input
@@ -72,16 +71,13 @@
           class="form-control"
           name="filterInput"
           id="filterInput"
+          placeholder="Filter..."
           bind:value={filterKey} />
       </div>
     </div>
     <div class="col-sm-12 col-md-4">
       <div class="form-group">
-        <select class="custom-select" bind:value={sortKey}>
-          {#each columns as column}
-            <option value={column}>{column}</option>
-          {/each}
-        </select>
+        <Select items={columns} bind:selectedValue={sortKey}></Select>
       </div>
     </div>
     {#if createAction}
@@ -93,15 +89,15 @@
         </div>
       </div>
     {/if}
-    <div class="col-12">
+    <div class="col-12" style="overflow-x:auto;">
       <table class="table table-responsive-sm table-borderless table-striped">
         <thead>
           <tr>
             {#each columns as column}
-              <th class="text-center">{column}</th>
+              <th class="text-center">{column.toUpperCase()}</th>
             {/each}
             {#if actions.length}
-              <th class="text-center">actions</th>
+              <th class="text-center">ACTIONS</th>
             {/if}
           </tr>
         </thead>

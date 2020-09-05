@@ -1,7 +1,13 @@
 import sirv from 'sirv';
+import * as dotenv from 'dotenv';
 import polka from 'polka';
 import compression from 'compression';
 import * as sapper from '@sapper/server';
+
+dotenv.config({
+	path: '../.env'
+});
+
 
 const { PORT, NODE_ENV } = process.env;
 const dev = NODE_ENV === 'development';
