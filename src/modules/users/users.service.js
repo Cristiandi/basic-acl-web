@@ -1,20 +1,18 @@
+import axios from 'axios';
 import { user as userFromStore } from '../../common/store';
+import { API_URL } from '../../config';
 
 class UserService {
   async login(user = {}) {
-    const { email, password } = user;
+    const respose = await axios({
+      url: `${API_URL}users/login`,
+      method: 'post',
+      data: {
+        ...user
+      }
+    });
 
-    if (email !== 'test@test.com' && password !== 'divelo') {
-      throw new Error('email o contraseña invalidos');
-    }
-
-    const data = {
-      id: 1,
-      email,
-      fullName: 'Hola Divelo',
-      accessToken: 'divelo',
-      companyUuid: 'iosddiosdio'
-    };
+    const { data } = respose;
 
     if (process.browser) {
       localStorage.setItem('user', JSON.stringify(data));

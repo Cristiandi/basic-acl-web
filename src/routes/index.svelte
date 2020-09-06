@@ -1,45 +1,49 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
-  import { onMount } from 'svelte';
-  import { goto } from '@sapper/app';
-  import { UserModel } from "../modules/users/users.model.js";
-  import { loginSchema } from "../modules/users/schemas/login.schema.js";
-  import { extractErrors } from "../common/utils.js";
+  import { user as userFromStore } from "../common/store.js";
+  import { onMount } from "svelte";
+  import { goto } from "@sapper/app";
+
   import { userService } from "../modules/users/users.service.js";
 
-  let user = {
-    ...new UserModel({}),
-  };
+  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+
+  import { loginSchema } from "../modules/users/schemas/login.schema.js";
+
+  let user = {};
 
   let errors = {};
-  let message = '';
+  let message = "";
 
   onMount(async () => {
     if ($userFromStore) {
-      await goto('/dashboard');
+      await goto("/dashboard");
     }
   });
 
   async function handleSubmit(event) {
-    console.log("user", user);
+    errors = {};
+    message = "";
 
     try {
       await loginSchema.validate(user, { abortEarly: false });
     } catch (error) {
-      errors = { ...extractErrors(error) };
+      errors = {
+        ...extractErrors(error)
+      };
       return;
     }
 
     try {
       await userService.login({
         email: user.email,
-        password: user.password
+        password: user.password,
+        companyName: user.companyName,
       });
 
-      goto('/dashboard');
+      goto("/dashboard");
     } catch (error) {
       console.error(error);
-      message = 'something went wrong.';
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
   }
 </script>
@@ -92,6 +96,18 @@
       <div class="card card-container">
         <form name="form" on:submit|preventDefault={handleSubmit}>
           <div class="form-group">
+            <label for="companyName">Company name</label>
+            <input
+              type="text"
+              class="form-control"
+              name="companyName"
+              id="companyName"
+              bind:value={user.companyName} />
+            {#if errors.companyName}
+              <span class="validation">{errors.companyName}</span>
+            {/if}
+          </div>
+          <div class="form-group">
             <label for="email">Email</label>
             <input
               type="email"
@@ -106,8 +122,6 @@
           <div class="form-group">
             <label for="password">Clave</label>
             <input
-              minlength="5"
-              maxlength="100"
               type="password"
               class="form-control"
               name="password"
@@ -118,15 +132,11 @@
             {/if}
           </div>
           <div class="form-group">
-            <button class="btn btn-primary btn-block">
-              <span>Ingresar</span>
-            </button>
+            <button class="btn btn-primary btn-block"> <span>Go</span> </button>
           </div>
           {#if message}
             <div class="form-group">
-              <div class="alert alert-danger" role="alert">
-                {message}
-              </div>
+              <div class="alert alert-danger" role="alert">{message}</div>
             </div>
           {/if}
         </form>

@@ -9,20 +9,20 @@ class CompanyService {
         id: 1,
         name: 'Pepito perez LTDA',
         uuid: '01C',
-        countryCode: 'MX'
+        countryCode: 'MX',
       },
       {
         id: 2,
         name: 'Si señor S.A.S',
         uuid: '02C',
-        countryCode: 'MX'
+        countryCode: 'MX',
       },
       {
         id: 3,
         name: 'Hola soy yo S.A.S',
         uuid: '03C',
-        countryCode: 'MX'
-      }
+        countryCode: 'MX',
+      },
     ];
 
     this.baseUrl = API_URL;
@@ -40,8 +40,9 @@ class CompanyService {
     const response = await axios({
       url: `${this.baseUrl}companies`,
       headers: {
-        'Authorization': accessToken
-      }
+        Authorization: `Bearer ${accessToken}`,
+        'company-uuid': companyUuid,
+      },
     });
 
     const { data } = response;
@@ -54,8 +55,8 @@ class CompanyService {
       url: `${this.baseUrl}companies`,
       method: 'post',
       data: {
-        ...company
-      }
+        ...company,
+      },
     });
 
     const { data } = response;
@@ -72,16 +73,18 @@ class CompanyService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
+    console.log('companyUuid', companyUuid);
 
     const response = await axios({
       url: `${this.baseUrl}companies/${id}`,
       method: 'patch',
       headers: {
-        'Authorization': accessToken
+        Authorization: `Bearer ${accessToken}`,
+        'company-uuid': companyUuid,
       },
       data: {
-        ...company
-      }
+        ...company,
+      },
     });
 
     const { data } = response;
@@ -102,8 +105,9 @@ class CompanyService {
       url: `${this.baseUrl}companies/${id}`,
       method: 'delete',
       headers: {
-        'Authorization': accessToken
-      }
+        Authorization: `Bearer ${accessToken}`,
+        'company-uuid': companyUuid,
+      },
     });
 
     const { data } = response;
