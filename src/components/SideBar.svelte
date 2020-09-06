@@ -3,7 +3,7 @@
   import { fade } from 'svelte/transition';
 
   function closeSideBar() {
-    showSideBarFromStore.set(false)
+    showSideBarFromStore.set(false);
   }
 </script>
 
@@ -58,5 +58,6 @@
 
 <div id="mySidebar" class="sidebar bg-dark" transition:fade="{{ duration: 500 }}">
   <span class="closebtn" on:click={closeSideBar}> × </span>
-  <a href="/company" on:click={closeSideBar}>My company</a>
+  <a href="/company" on:click={closeSideBar}>Your company</a>
+  <a href="/users" on:click={closeSideBar}>Your users</a>
 </div>

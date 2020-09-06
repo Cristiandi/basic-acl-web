@@ -1,12 +1,12 @@
 <script>
-  import { createEventDispatcher } from "svelte";
-  import Icon from "svelte-awesome/components/Icon.svelte";
+  import { createEventDispatcher } from 'svelte';
+  import Icon from 'svelte-awesome/components/Icon.svelte';
   import Select from 'svelte-select';
   import {
     plus as plusIcon,
     pencil as penIcon,
     times as timesIcom,
-  } from "svelte-awesome/icons";
+  } from 'svelte-awesome/icons';
 
   const dispatch = createEventDispatcher();
 
@@ -16,9 +16,10 @@
   export let limit = 10;
   export let actions = [];
 
-  let filterKey = "";
+  let filterKey = '';
   let sortKey = undefined;
-  let currentPage = 1;
+  const firtsPageNumber = 1;
+  let currentPage = firtsPageNumber;
   let skip = 0;
 
   let filteredRows = [];
@@ -45,14 +46,48 @@
     filteredRows = filteredRows.slice(skip, skip + limit);
   }
 
+  let pagination = [];
+  $: {
+    const totalRows = rows.length;
+    const pagesNumber = Math.ceil(totalRows / limit);
+
+    let paginationArrray = [];
+    for (let i = 0; i < pagesNumber; i++) {
+      const toSkip = paginationArrray[paginationArrray.length - 1]
+        ? paginationArrray[paginationArrray.length - 1].skip + limit
+        : 0;
+
+      const pageNumber = paginationArrray.length + 1;
+
+      paginationArrray = [
+        ...paginationArrray,
+        { limit, skip: toSkip, pageNumber },
+      ];
+    }
+
+    pagination = paginationArrray;
+  }
+
+  $: lastPageNumber = pagination.length
+    ? pagination[pagination.length - 1].pageNumber
+    : 0;
+
   $: createAction = actions.reduce((pre, cur) => {
-    if (cur.includes("create")) {
+    if (cur.includes('create')) {
       return cur;
     } else return pre;
-  }, "");
+  }, '');
+
+  function handlePageClick(pageNumber = 1) {
+    const askedPage = pagination[pageNumber - 1];
+    if (!askedPage) return;
+    limit = askedPage.limit;
+    skip = askedPage.skip;
+    currentPage = askedPage.pageNumber;
+  }
 
   function handleDispatch(action, row) {
-    dispatch("message", {
+    dispatch('message', {
       action,
       row: { ...row },
     });
@@ -77,13 +112,16 @@
     </div>
     <div class="col-sm-12 col-md-4">
       <div class="form-group">
-        <Select items={columns} bind:selectedValue={sortKey}></Select>
+        <Select items={columns} bind:selectedValue={sortKey} />
       </div>
     </div>
     {#if createAction}
       <div class="col-sm-12 col-md-4">
         <div class="form-group">
-          <button type="button" class="btn btn-block btn-primary" on:click={handleDispatch(createAction, {})}>
+          <button
+            type="button"
+            class="btn btn-block btn-primary"
+            on:click={handleDispatch(createAction, {})}>
             <Icon data={plusIcon} scale={1} />
           </button>
         </div>
@@ -133,6 +171,41 @@
           {/each}
         </tbody>
       </table>
+      {#if pagination.length}
+        <div class="d-flex justify-content-center">
+          <ul class="pagination">
+            <li class="page-item">
+              <div
+                class="page-link"
+                aria-label="Previous"
+                on:click={handlePageClick(firtsPageNumber)}>
+                <span aria-hidden="true">&laquo;</span>
+                <span class="sr-only">Previous</span>
+              </div>
+            </li>
+            {#each pagination as page}
+              <li
+                class="page-item"
+                class:active={currentPage === page.pageNumber}>
+                <div
+                  class="page-link"
+                  on:click={handlePageClick(page.pageNumber)}>
+                  {page.pageNumber}
+                </div>
+              </li>
+            {/each}
+            <li class="page-item">
+              <div
+                class="page-link"
+                aria-label="Next"
+                on:click={handlePageClick(lastPageNumber)}>
+                <span aria-hidden="true">&raquo;</span>
+                <span class="sr-only">Next</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      {/if}
     </div>
   </div>
 </div>

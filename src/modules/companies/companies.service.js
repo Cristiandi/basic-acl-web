@@ -28,7 +28,7 @@ class CompanyService {
     this.baseUrl = API_URL;
   }
 
-  async getCompanies() {
+  async getCompany() {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -38,7 +38,7 @@ class CompanyService {
     const { accessToken, companyUuid } = dataForAuth;
 
     const response = await axios({
-      url: `${this.baseUrl}companies`,
+      url: `${this.baseUrl}companies/your-company/${companyUuid}`,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'company-uuid': companyUuid,
@@ -47,15 +47,24 @@ class CompanyService {
 
     const { data } = response;
 
-    return data;
+    return [data];
   }
 
-  async createCompany(company) {
+  async createCompany(company = {}) {
+    const { name, serviceAccount, firebaseConfig, countryCode } = company;
+
+    const body = {
+      name,
+      serviceAccount,
+      firebaseConfig,
+      countryCode
+    };
+
     const response = await axios({
       url: `${this.baseUrl}companies`,
       method: 'post',
       data: {
-        ...company,
+        ...body,
       },
     });
 
@@ -64,7 +73,7 @@ class CompanyService {
     return data;
   }
 
-  async updateCompany(id, company) {
+  async updateCompany(company) {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -73,7 +82,16 @@ class CompanyService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    console.log('companyUuid', companyUuid);
+    const { id, name, serviceAccount, firebaseConfig, countryCode } = company;
+
+    const body = {
+      name,
+      serviceAccount,
+      firebaseConfig,
+      countryCode
+    };
+
+    console.log(body, 'body');
 
     const response = await axios({
       url: `${this.baseUrl}companies/${id}`,
@@ -83,7 +101,7 @@ class CompanyService {
         'company-uuid': companyUuid,
       },
       data: {
-        ...company,
+        ...body,
       },
     });
 

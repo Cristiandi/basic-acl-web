@@ -39,8 +39,6 @@ export const getCookie = name => {
 */
 
 export const getDataForAuth = () => {
-  console.log('getDataForAuth');
-
   const userFromLocalStorage = process.browser ? JSON.parse(localStorage.getItem('user')) : null;
 
   const { accessToken, companyUuid } = userFromLocalStorage;

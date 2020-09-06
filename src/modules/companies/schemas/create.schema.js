@@ -14,5 +14,14 @@ export const createSchema = yup.object().shape({
     token_uri: yup.string().required(),
     auth_provider_x509_cert_url: yup.string().required(),
     client_x509_cert_url: yup.string().required()
+  }),
+  firebaseConfig: yup.object().shape({
+    apiKey: yup.string().required(),
+    authDomain: yup.string().required(),
+    databaseURL: yup.string().required(),
+    storageBucket: yup.string().required(),
+    messagingSenderId: yup.string().required(),
+    appId: yup.string().required(),
+    measurementId: yup.string().required()
   })
 });

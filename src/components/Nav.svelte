@@ -9,7 +9,7 @@
     userCircleO as userCircleOIcon,
     signOut as signOutIcon,
     alignLeft as alignLeftIcon
-  } from 'svelte-awesome/icons'
+  } from 'svelte-awesome/icons';
 
 	export let segment;
   console.log(segment, 'segment');
