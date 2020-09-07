@@ -70,7 +70,10 @@ class CompanyService {
 
     const { data } = response;
 
-    return data;
+    return {
+      ...data,
+      message: `company created, the UUID is ${data.uuid} please save that value.`
+    };
   }
 
   async updateCompany(company) {

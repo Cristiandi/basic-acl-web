@@ -125,6 +125,32 @@ class UserService {
     return data;
   }
 
+  async createCompanyAdmin(user = {}) {
+    const { companyUuid, email, password, phone } = user;
+
+    const body = {
+      companyUuid,
+      email,
+      password,
+      phone
+    };
+
+    const response = await axios({
+      url: `${this.baseUrl}users/company-admin`,
+      method: 'post',
+      data: {
+        ...body,
+      }
+    });
+
+    const { data } = response;
+
+    return {
+      ...data,
+      message: 'your company admin user has been created, now you can login.'
+    };
+  }
+
   async login(user = {}) {
     const respose = await axios({
       url: `${this.baseUrl}users/login`,

@@ -7,10 +7,11 @@
 
   import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
 
-  import { loginSchema } from "../modules/users/schemas/login.schema.js";
+  import { createCompanyAdminSchema } from "../modules/users/schemas/create-company-admin.schema.js";
 
   let user = {};
 
+  let successful = true;
   let errors = {};
   let message = "";
 
@@ -25,8 +26,9 @@
     message = "";
 
     try {
-      await loginSchema.validate(user, { abortEarly: false });
+      await createCompanyAdminSchema.validate(user, { abortEarly: false });
     } catch (error) {
+      console.log('error', error);
       errors = {
         ...extractErrors(error),
       };
@@ -34,15 +36,11 @@
     }
 
     try {
-      await userService.login({
-        email: user.email,
-        password: user.password,
-        companyName: user.companyName,
-      });
-
-      goto("/dashboard");
+      const result = await userService.createCompanyAdmin(user);
+      successful = true;
+      message = result.message;
     } catch (error) {
-      console.error(error);
+      successful = false;
       message = getFromObjectPathParsed(error, "response.data.message");
     }
   }
@@ -88,7 +86,7 @@
 </style>
 
 <svelte:head>
-  <title>Login</title>
+  <title>Create company admin</title>
 </svelte:head>
 
 <div class="container-fluid" id="main">
@@ -98,18 +96,15 @@
         centered">
       <div class="card card-container">
         <form name="form" on:submit|preventDefault={handleSubmit}>
-          <h5 class="card-title">Login</h5>
           <div class="form-group">
             <input
               type="text"
               class="form-control"
-              name="companyName"
-              id="companyName"
-              placeholder="Company name"
-              bind:value={user.companyName} />
-            {#if errors.companyName}
-              <span class="validation">{errors.companyName}</span>
-            {/if}
+              name="companyUuid"
+              id="companyUuid"
+              placeholder="Company UUID"
+              bind:value={user.companyUuid} />
+            {#if errors.companyUuid}<span class="validation">{errors.companyUuid}</span>{/if}
           </div>
           <div class="form-group">
             <input
@@ -119,9 +114,17 @@
               id="email"
               placeholder="Email"
               bind:value={user.email} />
-            {#if errors.password}
-              <span class="validation">{errors.email}</span>
-            {/if}
+            {#if errors.email}<span class="validation">{errors.email}</span>{/if}
+          </div>
+          <div class="form-group">
+            <input
+              type="phone"
+              class="form-control"
+              name="phone"
+              id="phone"
+              placeholder="Phone"
+              bind:value={user.phone} />
+            {#if errors.phone}<span class="validation">{errors.phone}</span>{/if}
           </div>
           <div class="form-group">
             <input
@@ -135,19 +138,33 @@
               <span class="validation">{errors.password}</span>
             {/if}
           </div>
-          <div class="form-group links">
-            <a href="/create-company">Want to start?</a>
-            <br/>
-            <span>Already loaded company data? </span><a href="/create-company-admin">Create company admin</a>
+          <div class="form-group">
+            <input
+              type="password"
+              class="form-control"
+              name="passwordConfirm"
+              id="passwordConfirm"
+              placeholder="Password confirm"
+              bind:value={user.passwordConfirm} />
+            {#if errors.passwordConfirm}
+              <span class="validation">{errors.passwordConfirm}</span>
+            {/if}
           </div>
-          <div class="form-group text-right">
-            <button class="btn btn-primary"> <span>Go</span> </button>
+          <div class="form-group">
+            <button class="btn btn-primary btn-block"> <span>Create</span> </button>
           </div>
           {#if message}
             <div class="form-group">
-              <div class="alert alert-danger" role="alert">{message}</div>
+              <div
+                class="alert"
+                role="alert"
+                class:alert-danger={successful === false}
+                class:alert-success={successful}>
+                {message}
+              </div>
             </div>
           {/if}
+          <div class="form-group links"><a href="/">Go login</a></div>
         </form>
       </div>
     </div>
