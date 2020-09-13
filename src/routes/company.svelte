@@ -6,13 +6,16 @@
 
   import Grid from '../components/Grid/Grid.svelte';
   import Modal from '../components/Modal/Modal.svelte';
+  import Toast from '../components/Toast.svelte';
 
   import { companiesService } from '../modules/companies/companies.service.js';
+  import { userService } from '../modules/users/users.service';
 
   import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
   import { createSchema } from '../modules/companies/schemas/create.schema.js';
   import { updateSchema } from '../modules/companies/schemas/update.schema.js';
+  import { window } from 'lodash/_freeGlobal';
 
   let companies = [];
 
@@ -48,12 +51,12 @@
   function initUpdate(row) {
     current = {
       ...row,
-      serviceAccountString: row.serviceAccount ?
-        JSON.stringify(row.serviceAccount) :
-        '',
-      firebaseConfigString: row.firebaseConfig ?
-        JSON.stringify(row.firebaseConfig) :
-        ''
+      serviceAccountString: row.serviceAccount
+        ? JSON.stringify(row.serviceAccount)
+        : '',
+      firebaseConfigString: row.firebaseConfig
+        ? JSON.stringify(row.firebaseConfig)
+        : '',
     };
     console.log('current in updte', current);
     isUpdateModalOpen = true;
@@ -98,6 +101,21 @@
     }
   }
 
+  async function handleCreateUsersFromFirebaseClick(event) {
+    let localMessage = '';
+    try {
+      const result = await userService.createUsersFromFirebase(); 
+      localMessage = result.message;
+
+      window.pushToast(localMessage, 'success');
+
+    } catch (error) {
+      localMessage = getFromObjectPathParsed(error, 'response.data.message');
+
+      window.pushToast(localMessage, 'error');
+    }
+  }
+
   onMount(async () => {
     if (!$userFromStore) {
       await goto('/');
@@ -113,8 +131,20 @@
   }
 </style>
 
+<div class="container">
+  <h1>Company</h1>
+  <div class="row">
+    <div class="col-12">
+      <button
+        type="button"
+        class="btn btn-primary"
+        on:click={handleCreateUsersFromFirebaseClick}>Create users from firebase</button>
+    </div>
+  </div>
+</div>
+
 <Grid
-  title={'Companies'}
+  title={''}
   {columns}
   rows={companies}
   limit={10}
@@ -186,3 +216,5 @@
     </form>
   </div>
 </Modal>
+
+<Toast />

@@ -28,7 +28,7 @@
 </style>
 
 <nav class="navbar navbar-expand navbar-dark bg-dark static-top">
-  <div class="container">    
+  <div class="container-fluid">    
     <span class="icon" on:click="{e => showSideBarFromStore.set(true)}" >
       <Icon data={alignLeftIcon} scale={1.5} />
     </span>

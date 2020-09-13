@@ -178,6 +178,35 @@ class UserService {
     }
     userFromStore.set(null);
   }
+
+  async createUsersFromFirebase() {
+    const dataForAuth = getDataForAuth();
+
+    if (!dataForAuth) {
+      throw new Error('can not get data for auth.');
+    }
+
+    const { companyUuid } = dataForAuth;
+
+    const body = {
+      companyUuid
+    };
+
+    const response = await axios({
+      url: `${this.baseUrl}users/create-users-from-firebase`,
+      method: 'post',
+      data: {
+        ...body
+      }
+    });
+
+    const { data } = response;
+
+    return {
+      ...data,
+      message: 'soon as the process ends you will see your users.'
+    };
+  }
 }
 
 export const userService = new UserService();

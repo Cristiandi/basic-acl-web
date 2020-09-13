@@ -1,45 +1,45 @@
 <script>
-  import { user as userFromStore } from "../common/store.js";
-  import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
+  import { user as userFromStore } from '../common/store.js';
+  import { onMount } from 'svelte';
+  import { goto } from '@sapper/app';
 
-  import { companiesService } from "../modules/companies/companies.service.js";
+  import { companiesService } from '../modules/companies/companies.service.js';
 
-  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { createSchema } from "../modules/companies/schemas/create.schema.js";
+  import { createSchema } from '../modules/companies/schemas/create.schema.js';
 
   let company = {};
 
   let successful = true;
   let errors = {};
-  let message = "";
+  let message = '';
 
   onMount(async () => {
     if ($userFromStore) {
-      await goto("/dashboard");
+      await goto('/dashboard');
     }
   });
 
   async function handleSubmit(event) {
     errors = {};
-    message = "";
+    message = '';
 
     try {
       if (!company.serviceAccountString) {
-        throw new Error("serviceAccount is required.");
+        throw new Error('serviceAccount is required.');
       }
 
       company.serviceAccount = JSON.parse(company.serviceAccountString);
 
       if (!company.firebaseConfigString) {
-        throw new Error("firebaseConfig is required.");
+        throw new Error('firebaseConfig is required.');
       }
 
       company.firebaseConfig = JSON.parse(company.firebaseConfigString);
     } catch (error) {
-      console.error("error", error);
-      message = error.message || "something went wrong.";
+      console.error('error', error);
+      message = error.message || 'something went wrong.';
       return;
     }
 
@@ -59,7 +59,7 @@
     } catch (error) {
       console.error(error);
       successful = false;
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
   }
 </script>

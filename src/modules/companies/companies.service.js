@@ -4,27 +4,6 @@ import { API_URL } from '../../config';
 
 class CompanyService {
   constructor() {
-    this.companies = [
-      {
-        id: 1,
-        name: 'Pepito perez LTDA',
-        uuid: '01C',
-        countryCode: 'MX',
-      },
-      {
-        id: 2,
-        name: 'Si señor S.A.S',
-        uuid: '02C',
-        countryCode: 'MX',
-      },
-      {
-        id: 3,
-        name: 'Hola soy yo S.A.S',
-        uuid: '03C',
-        countryCode: 'MX',
-      },
-    ];
-
     this.baseUrl = API_URL;
   }
 

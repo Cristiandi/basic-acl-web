@@ -1,29 +1,29 @@
 <script>
-  import { user as userFromStore } from "../common/store.js";
-  import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
+  import { user as userFromStore } from '../common/store.js';
+  import { onMount } from 'svelte';
+  import { goto } from '@sapper/app';
 
-  import { userService } from "../modules/users/users.service.js";
+  import { userService } from '../modules/users/users.service.js';
 
-  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { createCompanyAdminSchema } from "../modules/users/schemas/create-company-admin.schema.js";
+  import { createCompanyAdminSchema } from '../modules/users/schemas/create-company-admin.schema.js';
 
   let user = {};
 
   let successful = true;
   let errors = {};
-  let message = "";
+  let message = '';
 
   onMount(async () => {
     if ($userFromStore) {
-      await goto("/dashboard");
+      await goto('/dashboard');
     }
   });
 
   async function handleSubmit(event) {
     errors = {};
-    message = "";
+    message = '';
 
     try {
       await createCompanyAdminSchema.validate(user, { abortEarly: false });
@@ -41,7 +41,7 @@
       message = result.message;
     } catch (error) {
       successful = false;
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
   }
 </script>
