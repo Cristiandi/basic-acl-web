@@ -79,14 +79,13 @@ class UserService {
     const { email, password, phone } = user;
 
     const body = {
-      companyUuid,
       email,
       phone,
       password
     };
 
     const response = await axios({
-      url: `${this.baseUrl}users/${user.id}`,
+      url: `${this.baseUrl}users/${companyUuid}/${user.id}`,
       method: 'patch',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -112,7 +111,7 @@ class UserService {
     const { accessToken, companyUuid } = dataForAuth;
 
     const response = await axios({
-      url: `${this.baseUrl}users/${user.id}`,
+      url: `${this.baseUrl}users/${companyUuid}/${user.id}`,
       method: 'delete',
       headers: {
         Authorization: `Bearer ${accessToken}`,
