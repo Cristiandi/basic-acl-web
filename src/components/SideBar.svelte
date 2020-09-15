@@ -60,4 +60,5 @@
   <span class="closebtn" on:click={closeSideBar}> × </span>
   <a href="/company" on:click={closeSideBar}>Your company</a>
   <a href="/users" on:click={closeSideBar}>Your users</a>
+  <a href="/projects" on:click={closeSideBar}>Your projects</a>
 </div>
