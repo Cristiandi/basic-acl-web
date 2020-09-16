@@ -61,4 +61,5 @@
   <a href="/company" on:click={closeSideBar}>Your company</a>
   <a href="/users" on:click={closeSideBar}>Your users</a>
   <a href="/projects" on:click={closeSideBar}>Your projects</a>
+  <a href="/roles" on:click={closeSideBar}>Your roles</a>
 </div>
