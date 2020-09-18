@@ -1,22 +1,22 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-  import Icon from 'svelte-awesome/components/Icon.svelte';
-  import Select from 'svelte-select';
+  import { createEventDispatcher } from "svelte";
+  import Icon from "svelte-awesome/components/Icon.svelte";
+  import Select from "svelte-select";
   import {
     plus as plusIcon,
     pencil as penIcon,
     times as timesIcom,
-  } from 'svelte-awesome/icons';
+  } from "svelte-awesome/icons";
 
   const dispatch = createEventDispatcher();
 
-  export let title = 'Default';
+  export let title = "Default";
   export let columns = [];
   export let rows = [];
   export let limit = 10;
   export let actions = [];
 
-  let filterKey = '';
+  let filterKey = "";
   let sortKey = undefined;
   const firtsPageNumber = 1;
   let currentPage = firtsPageNumber;
@@ -73,10 +73,10 @@
     : 0;
 
   $: createAction = actions.reduce((pre, cur) => {
-    if (cur.includes('create')) {
+    if (cur.includes("create")) {
       return cur;
     } else return pre;
-  }, '');
+  }, "");
 
   function handlePageClick(pageNumber = 1) {
     const askedPage = pagination[pageNumber - 1];
@@ -87,7 +87,7 @@
   }
 
   function handleDispatch(action, row) {
-    dispatch('message', {
+    dispatch("message", {
       action,
       row: { ...row },
     });
@@ -128,83 +128,87 @@
       </div>
     {/if}
     <div class="col-12" style="overflow-x:auto;">
-      <table class="table table-responsive-sm table-borderless table-striped">
-        <thead>
-          <tr>
-            {#each columns as column}
-              <th class="text-center">{column.toUpperCase()}</th>
-            {/each}
-            {#if actions.length}
-              <th class="text-center">ACTIONS</th>
-            {/if}
-          </tr>
-        </thead>
-        <tbody>
-          {#each filteredRows as row}
+      {#if !rows.length}
+        <h3>NO ROWS</h3>
+      {:else}
+        <table class="table table-responsive-sm table-borderless table-striped">
+          <thead>
             <tr>
               {#each columns as column}
-                <td class="text-center"><span>{row[column]}</span></td>
+                <th class="text-center">{column.toUpperCase()}</th>
               {/each}
               {#if actions.length}
-                <td>
-                  <div class="text-center">
-                    {#each actions as action}
-                      {#if !action.includes('create')}
-                        <span>
-                          <button
-                            type="button"
-                            class="btn btn-secondary btn-sm"
-                            on:click={handleDispatch(action, row)}>
-                            {#if action.includes('update')}
-                              <Icon data={penIcon} scale={1} />
-                            {:else if action.includes('delete')}
-                              <Icon data={timesIcom} scale={1} />
-                            {:else}{action}{/if}
-                          </button>
-                        </span>
-                      {/if}
-                    {/each}
-                  </div>
-                </td>
+                <th class="text-center">ACTIONS</th>
               {/if}
             </tr>
-          {/each}
-        </tbody>
-      </table>
-      {#if pagination.length}
-        <div class="d-flex justify-content-center">
-          <ul class="pagination">
-            <li class="page-item">
-              <div
-                class="page-link"
-                aria-label="Previous"
-                on:click={handlePageClick(firtsPageNumber)}>
-                <span aria-hidden="true">&laquo;</span>
-                <span class="sr-only">Previous</span>
-              </div>
-            </li>
-            {#each pagination as page}
-              <li
-                class="page-item"
-                class:active={currentPage === page.pageNumber}>
+          </thead>
+          <tbody>
+            {#each filteredRows as row}
+              <tr>
+                {#each columns as column}
+                  <td class="text-center"><span>{row[column]}</span></td>
+                {/each}
+                {#if actions.length}
+                  <td>
+                    <div class="text-center">
+                      {#each actions as action}
+                        {#if !action.includes('create')}
+                          <span>
+                            <button
+                              type="button"
+                              class="btn btn-secondary btn-sm"
+                              on:click={handleDispatch(action, row)}>
+                              {#if action.includes('update')}
+                                <Icon data={penIcon} scale={1} />
+                              {:else if action.includes('delete')}
+                                <Icon data={timesIcom} scale={1} />
+                              {:else}{action}{/if}
+                            </button>
+                          </span>
+                        {/if}
+                      {/each}
+                    </div>
+                  </td>
+                {/if}
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+        {#if pagination.length}
+          <div class="d-flex justify-content-center">
+            <ul class="pagination">
+              <li class="page-item">
                 <div
                   class="page-link"
-                  on:click={handlePageClick(page.pageNumber)}>
-                  {page.pageNumber}
+                  aria-label="Previous"
+                  on:click={handlePageClick(firtsPageNumber)}>
+                  <span aria-hidden="true">&laquo;</span>
+                  <span class="sr-only">Previous</span>
                 </div>
               </li>
-            {/each}
-            <li class="page-item">
-              <div
-                class="page-link"
-                aria-label="Next"
-                on:click={handlePageClick(lastPageNumber)}>
-                <span aria-hidden="true">&raquo;</span>
-                <span class="sr-only">Next</span>
-              </div>
-            </li>
-          </ul>
-        </div>
+              {#each pagination as page}
+                <li
+                  class="page-item"
+                  class:active={currentPage === page.pageNumber}>
+                  <div
+                    class="page-link"
+                    on:click={handlePageClick(page.pageNumber)}>
+                    {page.pageNumber}
+                  </div>
+                </li>
+              {/each}
+              <li class="page-item">
+                <div
+                  class="page-link"
+                  aria-label="Next"
+                  on:click={handlePageClick(lastPageNumber)}>
+                  <span aria-hidden="true">&raquo;</span>
+                  <span class="sr-only">Next</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+        {/if}
       {/if}
     </div>
   </div>
