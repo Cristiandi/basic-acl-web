@@ -3,6 +3,7 @@
 
   import { onMount } from 'svelte';
   import { goto } from '@sapper/app';
+  import { window } from 'lodash/_freeGlobal';
 
   import Grid from '../components/Grid/Grid.svelte';
   import Modal from '../components/Modal/Modal.svelte';
@@ -13,9 +14,7 @@
 
   import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { createSchema } from '../modules/companies/schemas/create.schema.js';
   import { updateSchema } from '../modules/companies/schemas/update.schema.js';
-  import { window } from 'lodash/_freeGlobal';
 
   let companies = [];
 
@@ -28,9 +27,7 @@
   let errors = {};
   let message = '';
 
-  let isCreateModalOpen = false;
   let isUpdateModalOpen = false;
-  let isDeteleModalOpen = false;
 
   function handleMessage(event) {
     const { detail } = event;

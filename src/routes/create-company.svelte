@@ -38,7 +38,6 @@
 
       company.firebaseConfig = JSON.parse(company.firebaseConfigString);
     } catch (error) {
-      console.error('error', error);
       message = error.message || 'something went wrong.';
       return;
     }

@@ -10,7 +10,7 @@ class UserService {
     this.baseUrl = API_URL;
   }
 
-  async createUser(user = {}) {
+  async create(item = {}) {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -19,7 +19,7 @@ class UserService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { email, password, phone } = user;
+    const { email, password, phone } = item;
 
     const body = {
       companyUuid,
@@ -45,7 +45,7 @@ class UserService {
     return data;
   }
 
-  async getUsers() {
+  async findAll() {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -67,7 +67,7 @@ class UserService {
     return data;
   }
 
-  async updateUser(user = {}) {
+  async update(item = {}) {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -76,7 +76,7 @@ class UserService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { email, password, phone } = user;
+    const { email, password, phone } = item;
 
     const body = {
       email,
@@ -85,7 +85,7 @@ class UserService {
     };
 
     const response = await axios({
-      url: `${this.baseUrl}users/${companyUuid}/${user.id}`,
+      url: `${this.baseUrl}users/${companyUuid}/${item.id}`,
       method: 'patch',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -101,7 +101,7 @@ class UserService {
     return data;
   }
 
-  async removeUser(user = {}) {
+  async remove(item = {}) {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -111,7 +111,7 @@ class UserService {
     const { accessToken, companyUuid } = dataForAuth;
 
     const response = await axios({
-      url: `${this.baseUrl}users/${companyUuid}/${user.id}`,
+      url: `${this.baseUrl}users/${companyUuid}/${item.id}`,
       method: 'delete',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -124,8 +124,8 @@ class UserService {
     return data;
   }
 
-  async createCompanyAdmin(user = {}) {
-    const { companyUuid, email, password, phone } = user;
+  async createCompanyAdmin(item = {}) {
+    const { companyUuid, email, password, phone } = item;
 
     const body = {
       companyUuid,
@@ -150,12 +150,12 @@ class UserService {
     };
   }
 
-  async login(user = {}) {
+  async login(item = {}) {
     const respose = await axios({
       url: `${this.baseUrl}users/login`,
       method: 'post',
       data: {
-        ...user
+        ...item
       }
     });
 

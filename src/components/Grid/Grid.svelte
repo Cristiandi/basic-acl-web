@@ -1,22 +1,22 @@
 <script>
-  import { createEventDispatcher } from "svelte";
-  import Icon from "svelte-awesome/components/Icon.svelte";
-  import Select from "svelte-select";
+  import { createEventDispatcher } from 'svelte';
+  import Icon from 'svelte-awesome/components/Icon.svelte';
+  import Select from 'svelte-select';
   import {
     plus as plusIcon,
     pencil as penIcon,
     times as timesIcom,
-  } from "svelte-awesome/icons";
+  } from 'svelte-awesome/icons';
 
   const dispatch = createEventDispatcher();
 
-  export let title = "Default";
+  export let title = 'Default';
   export let columns = [];
   export let rows = [];
   export let limit = 10;
   export let actions = [];
 
-  let filterKey = "";
+  let filterKey = '';
   let sortKey = undefined;
   const firtsPageNumber = 1;
   let currentPage = firtsPageNumber;
@@ -73,10 +73,10 @@
     : 0;
 
   $: createAction = actions.reduce((pre, cur) => {
-    if (cur.includes("create")) {
+    if (cur.includes('create')) {
       return cur;
     } else return pre;
-  }, "");
+  }, '');
 
   function handlePageClick(pageNumber = 1) {
     const askedPage = pagination[pageNumber - 1];
@@ -87,7 +87,7 @@
   }
 
   function handleDispatch(action, row) {
-    dispatch("message", {
+    dispatch('message', {
       action,
       row: { ...row },
     });
@@ -146,7 +146,7 @@
             {#each filteredRows as row}
               <tr>
                 {#each columns as column}
-                  <td class="text-center"><span>{row[column]}</span></td>
+                  <td class="text-center"><span>{row[column] === null ? '' : row[column]}</span></td>
                 {/each}
                 {#if actions.length}
                   <td>

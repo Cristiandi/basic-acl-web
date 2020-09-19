@@ -1,28 +1,28 @@
 <script>
-  import { user as userFromStore } from "../common/store.js";
+  import { user as userFromStore } from '../common/store.js';
 
-  import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
+  import { onMount } from 'svelte';
+  import { goto } from '@sapper/app';
 
-  import Grid from "../components/Grid/Grid.svelte";
-  import Modal from "../components/Modal/Modal.svelte";
+  import Grid from '../components/Grid/Grid.svelte';
+  import Modal from '../components/Modal/Modal.svelte';
 
-  import { apiKeyService } from "../modules/api-keys/api-key.service";
+  import { apiKeyService } from '../modules/api-keys/api-key.service';
 
-  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { createSchema } from "../modules/api-keys/schemas/create.schema";
-  import { updateSchema } from "../modules/api-keys/schemas/update.schema.js";
+  import { createSchema } from '../modules/api-keys/schemas/create.schema';
+  import { updateSchema } from '../modules/api-keys/schemas/update.schema.js';
 
-  let apiKeys = [];
+  let items = [];
 
-  $: columns = apiKeys.length
-    ? Object.keys(apiKeys[0]).filter((key) => key !== "")
+  $: columns = items.length
+    ? Object.keys(items[0]).filter((key) => key !== '')
     : [];
 
   let current = {};
   let errors = {};
-  let message = "";
+  let message = '';
 
   let isCreateModalOpen = false;
   let isUpdateModalOpen = false;
@@ -33,17 +33,17 @@
 
     const { action, row } = detail;
 
-    if (action === "init-create-api_key") {
+    if (action === 'init-create-api_key') {
       initCreate();
-    } else if (action === "init-update-api_key") {
+    } else if (action === 'init-update-api_key') {
       initUpdate(row);
-    } else if (action === "init-delete-api_key") {
+    } else if (action === 'init-delete-api_key') {
       initDelete(row);
     }
   }
 
   async function loadData() {
-    const data = await apiKeyService.getApiKeys();
+    const data = await apiKeyService.findAll();
 
     return data;
   }
@@ -56,19 +56,19 @@
     current = {
       ...row,
     };
-    console.log("current in updte", current);
+    console.log('current in updte', current);
     isUpdateModalOpen = true;
   }
 
   function initDelete(row) {
     current = row;
-    console.log("current in delete", current);
+    console.log('current in delete', current);
     isDeteleModalOpen = true;
   }
 
   async function handleSubmitCreate(event) {
     errors = {};
-    message = "";
+    message = '';
 
     try {
       await createSchema.validate(current, { abortEarly: false });
@@ -78,18 +78,18 @@
     }
 
     try {
-      await apiKeyService.createApikey(current);
-      apiKeys = await loadData();
+      await apiKeyService.create(current);
+      items = await loadData();
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
   }
 
   async function handleSubmitUpdate(event) {
     errors = {};
-    message = "";
+    message = '';
 
     try {
       await updateSchema.validate(current, { abortEarly: false });
@@ -99,35 +99,35 @@
     }
 
     try {
-      await apiKeyService.updateApikey(current);
-      apiKeys = await loadData();
+      await apiKeyService.update(current);
+      items = await loadData();
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
   }
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = "";
+    message = '';
 
     try {
-      await apiKeyService.removeApiKey(current);
-      apiKeys = await loadData();
+      await apiKeyService.remove(current);
+      items = await loadData();
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
   }
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto("/");
+      await goto('/');
     }
 
-    apiKeys = await loadData();
+    items = await loadData();
   });
 </script>
 
@@ -140,7 +140,7 @@
 <Grid
   title={'Api keys'}
   {columns}
-  rows={apiKeys}
+  rows={items}
   limit={10}
   actions={['init-create-api_key', 'init-update-api_key', 'init-delete-api_key']}
   on:message={handleMessage} />

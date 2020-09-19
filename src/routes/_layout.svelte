@@ -5,7 +5,7 @@
 	} from '../common/store.js';
 
 	import Nav from '../components/Nav.svelte';
-	import SideBar from '../components/SideBar.svelte';
+	import SideBar from '../components/SideBar';
 
 	export let segment;
 

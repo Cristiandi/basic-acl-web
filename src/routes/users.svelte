@@ -14,10 +14,10 @@
   import { createSchema } from '../modules/users/schemas/create.schema.js';
   import { updateSchema } from '../modules/users/schemas/update.schema.js';
 
-  let users = [];
+  let items = [];
 
-  $: columns = users.length
-    ? Object.keys(users[0]).filter((key) => key !== '')
+  $: columns = items.length
+    ? Object.keys(items[0]).filter((key) => key !== '')
     : [];
 
   let current = {};
@@ -43,7 +43,7 @@
   }
 
   async function loadData() {
-    const data = await userService.getUsers();
+    const data = await userService.findAll();
 
     return data;
   }
@@ -78,8 +78,8 @@
     }
 
     try {
-      await userService.createUser(current);
-      users = await loadData();
+      await userService.create(current);
+      items = await loadData();
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
@@ -99,8 +99,8 @@
     }
 
     try {
-      await userService.updateUser(current);
-      users = await loadData();
+      await userService.update(current);
+      items = await loadData();
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
@@ -113,8 +113,8 @@
     message = '';
 
     try {
-      await userService.removeUser(current);
-      users = await loadData();
+      await userService.remove(current);
+      items = await loadData();
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
@@ -127,7 +127,7 @@
       await goto('/');
     }
 
-    users = await loadData();
+    items = await loadData();
   });
 </script>
 
@@ -140,7 +140,7 @@
 <Grid
   title={'Users'}
   {columns}
-  rows={users}
+  rows={items}
   limit={10}
   actions={['init-create-user', 'init-update-user', 'init-delete-user']}
   on:message={handleMessage} />

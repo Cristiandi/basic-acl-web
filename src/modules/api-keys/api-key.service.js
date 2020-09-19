@@ -8,7 +8,7 @@ class ApiKeyService {
     this.baseUrl = API_URL;
   }
 
-  async getApiKeys() {
+  async findAll() {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -30,7 +30,7 @@ class ApiKeyService {
     return data;
   }
 
-  async createApikey(apiKey = {}) {
+  async create(item = {}) {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -39,7 +39,7 @@ class ApiKeyService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { prefix } = apiKey;
+    const { prefix } = item;
 
     const body = {
       companyUuid,
@@ -63,7 +63,7 @@ class ApiKeyService {
     return data;
   }
 
-  async updateApikey(apiKey = {}) {
+  async update(item = {}) {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -72,7 +72,7 @@ class ApiKeyService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { id, enable } = apiKey;
+    const { id, enable } = item;
 
     const body = {
       enable
@@ -95,7 +95,7 @@ class ApiKeyService {
     return data;
   }
 
-  async removeApiKey(apiKey = {}) {
+  async remove(item = {}) {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
@@ -104,7 +104,7 @@ class ApiKeyService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { id } = apiKey;
+    const { id } = item;
 
     const response = await axios({
       url: `${this.baseUrl}api-keys/${companyUuid}/${id}`,

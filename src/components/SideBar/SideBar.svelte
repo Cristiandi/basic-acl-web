@@ -1,5 +1,5 @@
 <script>
-  import { showSideBar as showSideBarFromStore } from '../common/store.js';
+  import { showSideBar as showSideBarFromStore } from '../../common/store.js';
   import { fade } from 'svelte/transition';
 
   function closeSideBar() {
@@ -63,4 +63,5 @@
   <a href="/projects" on:click={closeSideBar}>Your projects</a>
   <a href="/roles" on:click={closeSideBar}>Your roles</a>
   <a href="/api-keys" on:click={closeSideBar}>Your api keys</a>
+  <a href="/assigned-roles" on:click={closeSideBar}>Your assigned roles</a>
 </div>

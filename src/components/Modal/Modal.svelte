@@ -45,9 +45,38 @@
     opacity: 0.5;
   }
 
-  @media (max-width: 767px) {
+  /* Extra small devices (phones, 600px and down) */
+  @media (max-width: 600px) {
     div.content-wrapper {
-      max-width: 100vw;
+      width: 100vw;
+    }
+  }
+
+  /* Small devices (portrait tablets and large phones, 600px and up) */
+  @media (min-width: 600px) {
+    div.content-wrapper {
+      width: 80vw;
+    }
+  }
+
+  /* Medium devices (landscape tablets, 768px and up) */
+  @media (min-width: 768px) {
+    div.content-wrapper {
+      width: 50vw;
+    }
+  }
+
+  /* Large devices (laptops/desktops, 992px and up) */
+  @media (min-width: 992px) {
+    div.content-wrapper {
+      width: 40vw;
+    }
+  }
+
+  /* Extra large devices (large laptops and desktops, 1200px and up) */
+  @media (min-width: 1200px) {
+    div.content-wrapper {
+      width: 30vw;
     }
   }
 </style>
