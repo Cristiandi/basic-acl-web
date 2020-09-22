@@ -3,7 +3,7 @@ import axios from 'axios';
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
 
-class ProjectService {
+class HttpRouteService {
   constructor() {
     this.baseUrl = API_URL;
   }
@@ -18,7 +18,7 @@ class ProjectService {
     const { accessToken, companyUuid } = dataForAuth;
 
     const response = await axios({
-      url: `${this.baseUrl}projects/${companyUuid}`,
+      url: `${this.baseUrl}http-routes/${companyUuid}`,
       headers: {
         Authorization: `Bearer ${accessToken}`,
         'company-uuid': companyUuid,
@@ -39,16 +39,18 @@ class ProjectService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { name, code } = item;
+    const { name, method, path, projectId } = item;
 
     const body = {
-      companyUuid,
       name,
-      code
+      companyUuid,
+      method,
+      path,
+      projectId
     };
 
     const response = await axios({
-      url: `${this.baseUrl}projects`,
+      url: `${this.baseUrl}http-routes`,
       method: 'post',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -73,16 +75,20 @@ class ProjectService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { id, code, name } = item;
+    const { id, name, method, path, projectId } = item;
 
     const body = {
       companyUuid,
       name,
-      code
+      method,
+      path,
+      projectId
     };
 
+    console.log(body, 'body');
+
     const response = await axios({
-      url: `${this.baseUrl}projects/${companyUuid}/${id}`,
+      url: `${this.baseUrl}http-routes/${companyUuid}/${id}`,
       method: 'patch',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -110,7 +116,7 @@ class ProjectService {
     const { id } = item;
 
     const response = await axios({
-      url: `${this.baseUrl}projects/${companyUuid}/${id}`,
+      url: `${this.baseUrl}http-routes/${companyUuid}/${id}`,
       method: 'delete',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -124,4 +130,4 @@ class ProjectService {
   }
 }
 
-export const projectService = new ProjectService();
+export const httpRouteService = new HttpRouteService();

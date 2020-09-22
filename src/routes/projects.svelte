@@ -14,10 +14,10 @@
     import { createSchema } from '../modules/projects/schemas/create.schema';
     import { updateSchema } from '../modules/projects/schemas/update.schema.js';
   
-    let projects = [];
+    let items = [];
   
-    $: columns = projects.length
-      ? Object.keys(projects[0]).filter((key) => key !== '')
+    $: columns = items.length
+      ? Object.keys(items[0]).filter((key) => key !== '')
       : [];
   
     let current = {};
@@ -43,7 +43,7 @@
     }
   
     async function loadData() {
-      const data = await projectService.getProjects();
+      const data = await projectService.findAll();
   
       return data;
     }
@@ -81,8 +81,8 @@
       console.log('HI');
 
       try {
-        await projectService.createProject(current);
-        projects = await loadData();
+        await projectService.create(current);
+        items = await loadData();
         isCreateModalOpen = false;
         current = {};
       } catch (error) {
@@ -102,8 +102,8 @@
       }
   
       try {
-        await projectService.updateProject(current);
-        projects = await loadData();
+        await projectService.update(current);
+        items = await loadData();
         isUpdateModalOpen = false;
         current = {};
       } catch (error) {
@@ -116,8 +116,8 @@
       message = '';
   
       try {
-        await projectService.removeProject(current);
-        projects = await loadData();
+        await projectService.remove(current);
+        items = await loadData();
         isDeteleModalOpen = false;
         current = {};
       } catch (error) {
@@ -130,7 +130,7 @@
         await goto('/');
       }
   
-      projects = await loadData();
+      items = await loadData();
     });
   </script>
   
@@ -143,7 +143,7 @@
   <Grid
     title={'Projects'}
     {columns}
-    rows={projects}
+    rows={items}
     limit={10}
     actions={['init-create-project', 'init-update-project', 'init-delete-project']}
     on:message={handleMessage} />

@@ -60,8 +60,9 @@
   <span class="closebtn" on:click={closeSideBar}> × </span>
   <a href="/company" on:click={closeSideBar}>Your company</a>
   <a href="/users" on:click={closeSideBar}>Your users</a>
-  <a href="/projects" on:click={closeSideBar}>Your projects</a>
   <a href="/roles" on:click={closeSideBar}>Your roles</a>
   <a href="/api-keys" on:click={closeSideBar}>Your api keys</a>
   <a href="/assigned-roles" on:click={closeSideBar}>Your assigned roles</a>
+  <a href="/projects" on:click={closeSideBar}>Your projects</a>
+  <a href="/http-routes" on:click={closeSideBar}>Your http routes</a>
 </div>
