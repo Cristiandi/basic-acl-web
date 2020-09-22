@@ -65,4 +65,5 @@
   <a href="/assigned-roles" on:click={closeSideBar}>Your assigned roles</a>
   <a href="/projects" on:click={closeSideBar}>Your projects</a>
   <a href="/http-routes" on:click={closeSideBar}>Your http routes</a>
+  <a href="/permissions" on:click={closeSideBar}>Your permissions</a>
 </div>
