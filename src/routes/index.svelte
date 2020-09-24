@@ -1,28 +1,30 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
-  import { onMount } from 'svelte';
-  import { goto } from '@sapper/app';
+  import { user as userFromStore } from "../common/store.js";
+  import { onMount } from "svelte";
+  import { goto } from "@sapper/app";
 
-  import { userService } from '../modules/users/users.service.js';
+  import { userService } from "../modules/users/users.service.js";
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
 
-  import { loginSchema } from '../modules/users/schemas/login.schema.js';
+  import { loginSchema } from "../modules/users/schemas/login.schema.js";
 
   let user = {};
 
   let errors = {};
-  let message = '';
+  let message = "";
+  let loading = false;
 
   onMount(async () => {
     if ($userFromStore) {
-      await goto('/dashboard');
+      await goto("/dashboard");
     }
   });
 
   async function handleSubmit(event) {
     errors = {};
-    message = '';
+    message = "";
+    loading = true;
 
     try {
       await loginSchema.validate(user, { abortEarly: false });
@@ -30,6 +32,7 @@
       errors = {
         ...extractErrors(error),
       };
+      loading = false;
       return;
     }
 
@@ -40,10 +43,13 @@
         companyName: user.companyName,
       });
 
-      goto('/dashboard');
+      loading = false;
+
+      goto("/dashboard");
     } catch (error) {
       console.error(error);
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
+      loading = false;
     }
   }
 </script>
@@ -137,12 +143,21 @@
           </div>
           <div class="form-group links">
             <a href="/create-company">Want to start?</a>
-            <br/>
-            <span>Already loaded company data? </span><a href="/create-company-admin">Create company admin</a>
+            <br />
+            <span>Already loaded company data? </span><a href="/create-company-admin">Create
+              company admin</a>
           </div>
-          <div class="form-group text-right">
-            <button class="btn btn-primary"> <span>Go</span> </button>
-          </div>
+          {#if loading}
+            <div class="form-group text-right">
+              <div class="spinner-border text-dark" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+          {:else}
+            <div class="form-group text-right">
+              <button class="btn btn-primary"> <span>Go</span> </button>
+            </div>
+          {/if}
           {#if message}
             <div class="form-group">
               <div class="alert alert-danger" role="alert">{message}</div>
