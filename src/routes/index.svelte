@@ -98,7 +98,7 @@
         centered">
       <div class="card card-container">
         <form name="form" on:submit|preventDefault={handleSubmit}>
-          <h5 class="card-title">Login Updated</h5>
+          <h5 class="card-title">Login</h5>
           <div class="form-group">
             <input
               type="text"
