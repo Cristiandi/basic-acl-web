@@ -1,31 +1,31 @@
 <script>
-  import { user as userFromStore } from "../common/store.js";
+  import { user as userFromStore } from '../common/store.js';
 
-  import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
-  import { window } from "lodash/_freeGlobal";
+  import { onMount } from 'svelte';
+  import { goto } from '@sapper/app';
+  import { window } from 'lodash/_freeGlobal';
 
-  import Grid from "../components/Grid/Grid.svelte";
-  import Modal from "../components/Modal/Modal.svelte";
-  import Toast from "../components/Toast.svelte";
+  import Grid from '../components/Grid/Grid.svelte';
+  import Modal from '../components/Modal/Modal.svelte';
+  import Toast from '../components/Toast.svelte';
 
-  import { companiesService } from "../modules/companies/companies.service.js";
-  import { userService } from "../modules/users/users.service";
+  import { companiesService } from '../modules/companies/companies.service.js';
+  import { userService } from '../modules/users/users.service';
 
-  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { updateSchema } from "../modules/companies/schemas/update.schema.js";
+  import { updateSchema } from '../modules/companies/schemas/update.schema.js';
 
   let companies = [];
 
-  const notShowInColumns = ["serviceAccount", "firebaseConfig"];
+  const notShowInColumns = ['serviceAccount', 'firebaseConfig'];
   $: columns = companies.length
     ? Object.keys(companies[0]).filter((key) => !notShowInColumns.includes(key))
     : [];
 
   let current = {};
   let errors = {};
-  let message = "";
+  let message = '';
   let loading = false;
   let loadingCreateUsers = false;
   let loadingModal = false;
@@ -37,7 +37,7 @@
 
     const { action, row } = detail;
 
-    if (action === "init-update-company") {
+    if (action === 'init-update-company') {
       initUpdate(row);
     }
   }
@@ -53,35 +53,35 @@
       ...row,
       serviceAccountString: row.serviceAccount
         ? JSON.stringify(row.serviceAccount)
-        : "",
+        : '',
       firebaseConfigString: row.firebaseConfig
         ? JSON.stringify(row.firebaseConfig)
-        : "",
+        : '',
     };
-    console.log("current in updte", current);
+    console.log('current in updte', current);
     isUpdateModalOpen = true;
   }
 
   async function handleSubmitUpdate(event) {
     errors = {};
-    message = "";
+    message = '';
     loadingModal = true;
 
     try {
       if (!current.serviceAccountString) {
-        throw new Error("serviceAccount is required.");
+        throw new Error('serviceAccount is required.');
       }
 
       current.serviceAccount = JSON.parse(current.serviceAccountString);
 
       if (!current.firebaseConfigString) {
-        throw new Error("firebaseConfig is required.");
+        throw new Error('firebaseConfig is required.');
       }
 
       current.firebaseConfig = JSON.parse(current.firebaseConfigString);
     } catch (error) {
-      console.error("error", error);
-      message = error.message || "something went wrong.";
+      console.error('error', error);
+      message = error.message || 'something went wrong.';
       loadingModal = false;
       return;
     }
@@ -100,31 +100,31 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
 
     loadingModal = false;
   }
 
   async function handleCreateUsersFromFirebaseClick(event) {
-    let localMessage = "";
+    let localMessage = '';
     loadingCreateUsers = true;
     try {
       const result = await userService.createUsersFromFirebase();
       localMessage = result.message;
 
-      window.pushToast(localMessage, "success");
+      window.pushToast(localMessage, 'success');
     } catch (error) {
-      localMessage = getFromObjectPathParsed(error, "response.data.message");
+      localMessage = getFromObjectPathParsed(error, 'response.data.message');
 
-      window.pushToast(localMessage, "error");
+      window.pushToast(localMessage, 'error');
     }
     loadingCreateUsers = false;
   }
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto("/");
+      await goto('/');
     }
 
     loading = true;

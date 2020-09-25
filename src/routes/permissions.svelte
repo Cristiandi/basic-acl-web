@@ -1,33 +1,33 @@
 <script>
-  import { user as userFromStore } from "../common/store.js";
+  import { user as userFromStore } from '../common/store.js';
 
   import Select from 'svelte-select';
-  import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
+  import { onMount } from 'svelte';
+  import { goto } from '@sapper/app';
 
-  import Grid from "../components/Grid/Grid.svelte";
-  import Modal from "../components/Modal/Modal.svelte";
+  import Grid from '../components/Grid/Grid.svelte';
+  import Modal from '../components/Modal/Modal.svelte';
 
-  import { permissionService } from "../modules/permissions/permission.service";
-  import { roleService } from "../modules/roles/role.service";
-  import { httpRouteService } from "../modules/http-routes/http-route.service";
+  import { permissionService } from '../modules/permissions/permission.service';
+  import { roleService } from '../modules/roles/role.service';
+  import { httpRouteService } from '../modules/http-routes/http-route.service';
 
-  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { createSchema } from "../modules/permissions/schemas/create.schema";
-  import { updateSchema } from "../modules/permissions/schemas/update.schema.js";
+  import { createSchema } from '../modules/permissions/schemas/create.schema';
+  import { updateSchema } from '../modules/permissions/schemas/update.schema.js';
 
   let items = [];
   let rolesList = [];
   let httpRoutesList = [];
 
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== "")
+    ? Object.keys(items[0]).filter((key) => key !== '')
     : [];
 
   let current = {};
   let errors = {};
-  let message = "";
+  let message = '';
 
   let isCreateModalOpen = false;
   let isUpdateModalOpen = false;
@@ -38,11 +38,11 @@
 
     const { action, row } = detail;
 
-    if (action === "init-create-permission") {
+    if (action === 'init-create-permission') {
       initCreate();
-    } else if (action === "init-update-permission") {
+    } else if (action === 'init-update-permission') {
       initUpdate(row);
-    } else if (action === "init-delete-permission") {
+    } else if (action === 'init-delete-permission') {
       initDelete(row);
     }
   }
@@ -81,19 +81,19 @@
         label: row.httpRouteName
       }
     };
-    console.log("current in updte", current);
+    console.log('current in updte', current);
     isUpdateModalOpen = true;
   }
 
   function initDelete(row) {
     current = row;
-    console.log("current in delete", current);
+    console.log('current in delete', current);
     isDeteleModalOpen = true;
   }
 
   async function handleSubmitCreate(event) {
     errors = {};
-    message = "";
+    message = '';
 
     try {
       current.roleId = current.role ? current.role.value : current.role;
@@ -111,13 +111,13 @@
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
   }
 
   async function handleSubmitUpdate(event) {
     errors = {};
-    message = "";
+    message = '';
 
     try {
       current.roleId = current.role ? current.role.value : current.role;
@@ -134,13 +134,13 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
   }
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = "";
+    message = '';
 
     try {
       await permissionService.remove(current);
@@ -148,13 +148,13 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
   }
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto("/");
+      await goto('/');
     }
 
     items = await loadData();

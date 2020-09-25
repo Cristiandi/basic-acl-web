@@ -1,29 +1,29 @@
 <script>
-  import { user as userFromStore } from "../common/store.js";
-  import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
+  import { user as userFromStore } from '../common/store.js';
+  import { onMount } from 'svelte';
+  import { goto } from '@sapper/app';
 
-  import { userService } from "../modules/users/users.service.js";
+  import { userService } from '../modules/users/users.service.js';
 
-  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { loginSchema } from "../modules/users/schemas/login.schema.js";
+  import { loginSchema } from '../modules/users/schemas/login.schema.js';
 
   let user = {};
 
   let errors = {};
-  let message = "";
+  let message = '';
   let loading = false;
 
   onMount(async () => {
     if ($userFromStore) {
-      await goto("/dashboard");
+      await goto('/dashboard');
     }
   });
 
   async function handleSubmit(event) {
     errors = {};
-    message = "";
+    message = '';
     loading = true;
 
     try {
@@ -45,10 +45,10 @@
 
       loading = false;
 
-      goto("/dashboard");
+      goto('/dashboard');
     } catch (error) {
       console.error(error);
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
       loading = false;
     }
   }
