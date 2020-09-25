@@ -162,6 +162,7 @@
 
 {#if loading}
   <div class="text-center">
+    <br/>
     <div class="spinner-border text-dark" role="status">
       <span class="sr-only">Loading...</span>
     </div>
