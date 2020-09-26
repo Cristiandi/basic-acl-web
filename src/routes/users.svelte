@@ -1,28 +1,30 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
+  import { user as userFromStore } from "../common/store.js";
 
-  import { onMount } from 'svelte';
-  import { goto } from '@sapper/app';
+  import { onMount } from "svelte";
+  import { goto } from "@sapper/app";
 
-  import Grid from '../components/Grid/Grid.svelte';
-  import Modal from '../components/Modal/Modal.svelte';
+  import Grid from "../components/Grid/Grid.svelte";
+  import Modal from "../components/Modal/Modal.svelte";
 
-  import { userService } from '../modules/users/users.service.js';
+  import { userService } from "../modules/users/users.service.js";
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
 
-  import { createSchema } from '../modules/users/schemas/create.schema.js';
-  import { updateSchema } from '../modules/users/schemas/update.schema.js';
+  import { createSchema } from "../modules/users/schemas/create.schema.js";
+  import { updateSchema } from "../modules/users/schemas/update.schema.js";
 
   let items = [];
 
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== '')
+    ? Object.keys(items[0]).filter((key) => key !== "")
     : [];
 
   let current = {};
   let errors = {};
-  let message = '';
+  let message = "";
+  let loading = false;
+  let loadingModal = false;
 
   let isCreateModalOpen = false;
   let isUpdateModalOpen = false;
@@ -33,11 +35,11 @@
 
     const { action, row } = detail;
 
-    if (action === 'init-create-user') {
+    if (action === "init-create-user") {
       initCreate();
-    } else if (action === 'init-update-user') {
+    } else if (action === "init-update-user") {
       initUpdate(row);
-    } else if (action === 'init-delete-user') {
+    } else if (action === "init-delete-user") {
       initDelete(row);
     }
   }
@@ -54,26 +56,28 @@
 
   function initUpdate(row) {
     current = {
-      ...row
+      ...row,
     };
-    console.log('current in updte', current);
+    console.log("current in updte", current);
     isUpdateModalOpen = true;
   }
 
   function initDelete(row) {
     current = row;
-    console.log('current in delete', current);
+    console.log("current in delete", current);
     isDeteleModalOpen = true;
   }
 
   async function handleSubmitCreate(event) {
     errors = {};
-    message = '';
+    message = "";
+    loadingModal = true;
 
     try {
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      loadingModal = false;
       return;
     }
 
@@ -83,18 +87,22 @@
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitUpdate(event) {
     errors = {};
-    message = '';
+    message = "";
+    loadingModal = true;
 
     try {
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      loadingModal = false;
       return;
     }
 
@@ -104,13 +112,16 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = '';
+    message = "";
+    loadingModal = true;
 
     try {
       await userService.remove(current);
@@ -118,16 +129,21 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto('/');
+      await goto("/");
     }
+    loading = true;
 
     items = await loadData();
+
+    loading = false;
   });
 </script>
 
@@ -137,13 +153,22 @@
   }
 </style>
 
-<Grid
-  title={'Users'}
-  {columns}
-  rows={items}
-  limit={10}
-  actions={['init-create-user', 'init-update-user', 'init-delete-user']}
-  on:message={handleMessage} />
+{#if loading}
+  <div class="text-center">
+    <br />
+    <div class="spinner-border text-dark" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+{:else}
+  <Grid
+    title={'Users'}
+    {columns}
+    rows={items}
+    limit={10}
+    actions={['init-create-user', 'init-update-user', 'init-delete-user']}
+    on:message={handleMessage} />
+{/if}
 
 <Modal bind:isOpen={isCreateModalOpen}>
   <div slot="header">
@@ -195,9 +220,19 @@
           <span class="validation">{errors.passwordConfirm}</span>
         {/if}
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Create</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Create</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -257,9 +292,19 @@
           <span class="validation">{errors.passwordConfirm}</span>
         {/if}
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Update</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>update</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -278,9 +323,19 @@
       <div class="form-group">
         <h3>¿Do you want to delete?</h3>
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Delete</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Delete</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>

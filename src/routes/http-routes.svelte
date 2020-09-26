@@ -1,31 +1,33 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
+  import { user as userFromStore } from "../common/store.js";
 
-  import Select from 'svelte-select';
-  import { onMount } from 'svelte';
-  import { goto } from '@sapper/app';
+  import Select from "svelte-select";
+  import { onMount } from "svelte";
+  import { goto } from "@sapper/app";
 
-  import Grid from '../components/Grid/Grid.svelte';
-  import Modal from '../components/Modal/Modal.svelte';
+  import Grid from "../components/Grid/Grid.svelte";
+  import Modal from "../components/Modal/Modal.svelte";
 
-  import { httpRouteService } from '../modules/http-routes/http-route.service';
-  import { projectService } from '../modules/projects/project.service';
+  import { httpRouteService } from "../modules/http-routes/http-route.service";
+  import { projectService } from "../modules/projects/project.service";
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
 
-  import { createSchema } from '../modules/http-routes/schemas/create.schema';
-  import { updateSchema } from '../modules/http-routes/schemas/update.schema.js';
+  import { createSchema } from "../modules/http-routes/schemas/create.schema";
+  import { updateSchema } from "../modules/http-routes/schemas/update.schema.js";
 
   let items = [];
   let projectsList = [];
 
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== '')
+    ? Object.keys(items[0]).filter((key) => key !== "")
     : [];
 
   let current = {};
   let errors = {};
-  let message = '';
+  let message = "";
+  let loading = false;
+  let loadingModal = false;
 
   let isCreateModalOpen = false;
   let isUpdateModalOpen = false;
@@ -36,11 +38,11 @@
 
     const { action, row } = detail;
 
-    if (action === 'init-create-http_route') {
+    if (action === "init-create-http_route") {
       initCreate();
-    } else if (action === 'init-update-http_route') {
+    } else if (action === "init-update-http_route") {
       initUpdate(row);
-    } else if (action === 'init-delete-http_route') {
+    } else if (action === "init-delete-http_route") {
       initDelete(row);
     }
   }
@@ -66,29 +68,33 @@
       ...row,
       project: {
         value: row.projectId,
-        label: row.projectName
-      }
+        label: row.projectName,
+      },
     };
-    console.log('current in updte', current);
+    console.log("current in updte", current);
     isUpdateModalOpen = true;
   }
 
   function initDelete(row) {
     current = row;
-    console.log('current in delete', current);
+    console.log("current in delete", current);
     isDeteleModalOpen = true;
   }
 
   async function handleSubmitCreate(event) {
     errors = {};
-    message = '';
+    message = "";
+    loadingModal = true;
 
     try {
-      current.projectId = current.project ? current.project.value : current.project;
+      current.projectId = current.project
+        ? current.project.value
+        : current.project;
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
       console.log(error);
+      loadingModal = false;
       return;
     }
 
@@ -98,19 +104,25 @@
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitUpdate(event) {
     errors = {};
-    message = '';
+    message = "";
+    loadingModal = true;
 
     try {
-      current.projectId = current.project ? current.project.value : current.project;
+      current.projectId = current.project
+        ? current.project.value
+        : current.project;
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      loadingModal = false;
       return;
     }
 
@@ -120,13 +132,16 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = '';
+    message = "";
+    loadingModal = true;
 
     try {
       await httpRouteService.remove(current);
@@ -134,17 +149,23 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto('/');
+      await goto("/");
     }
+
+    loading = true;
 
     items = await loadData();
     projectsList = await loadProjectsList();
+
+    loading = false;
   });
 </script>
 
@@ -154,13 +175,22 @@
   }
 </style>
 
-<Grid
-  title={'Http routes'}
-  {columns}
-  rows={items}
-  limit={10}
-  actions={['init-create-http_route', 'init-update-http_route', 'init-delete-http_route']}
-  on:message={handleMessage} />
+{#if loading}
+  <div class="text-center">
+    <br />
+    <div class="spinner-border text-dark" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+{:else}
+  <Grid
+    title={'Http routes'}
+    {columns}
+    rows={items}
+    limit={10}
+    actions={['init-create-http_route', 'init-update-http_route', 'init-delete-http_route']}
+    on:message={handleMessage} />
+{/if}
 
 <Modal bind:isOpen={isCreateModalOpen}>
   <div slot="header">
@@ -200,12 +230,27 @@
       </div>
       <div class="form-group">
         <label for="project">Project</label>
-        <Select name="project" items={projectsList} bind:selectedValue={current.project} />
-        {#if errors.projectId}<span class="validation">{errors.projectId}</span>{/if}
+        <Select
+          name="project"
+          items={projectsList}
+          bind:selectedValue={current.project} />
+        {#if errors.projectId}
+          <span class="validation">{errors.projectId}</span>
+        {/if}
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Create</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Create</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -253,12 +298,27 @@
       </div>
       <div class="form-group">
         <label for="project">Project</label>
-        <Select name="project" items={projectsList} bind:selectedValue={current.project} />
-        {#if errors.projectId}<span class="validation">{errors.projectId}</span>{/if}
+        <Select
+          name="project"
+          items={projectsList}
+          bind:selectedValue={current.project} />
+        {#if errors.projectId}
+          <span class="validation">{errors.projectId}</span>
+        {/if}
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Update</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>update</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -277,9 +337,19 @@
       <div class="form-group">
         <h3>¿Do you want to delete?</h3>
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Delete</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Delete</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
