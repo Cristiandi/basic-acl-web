@@ -1,21 +1,21 @@
 <script>
-  import { user as userFromStore } from "../common/store.js";
+  import { user as userFromStore } from '../common/store.js';
 
-  import Select from "svelte-select";
-  import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
+  import Select from 'svelte-select';
+  import { onMount } from 'svelte';
+  import { goto } from '@sapper/app';
 
-  import Grid from "../components/Grid/Grid.svelte";
-  import Modal from "../components/Modal/Modal.svelte";
+  import Grid from '../components/Grid/Grid.svelte';
+  import Modal from '../components/Modal/Modal.svelte';
 
-  import { assignedRoleService } from "../modules/assigned-roles/assigned-role.service";
-  import { roleService } from "../modules/roles/role.service";
-  import { userService } from "../modules/users/users.service";
-  import { apiKeyService } from "../modules/api-keys/api-key.service";
+  import { assignedRoleService } from '../modules/assigned-roles/assigned-role.service';
+  import { roleService } from '../modules/roles/role.service';
+  import { userService } from '../modules/users/users.service';
+  import { apiKeyService } from '../modules/api-keys/api-key.service';
 
-  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { createSchema } from "../modules/assigned-roles/schemas/create.schema";
+  import { createSchema } from '../modules/assigned-roles/schemas/create.schema';
 
   let items = [];
   let rolesList = [];
@@ -23,12 +23,12 @@
   let apiKeysList = [];
 
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== "")
+    ? Object.keys(items[0]).filter((key) => key !== '')
     : [];
 
   let current = {};
   let errors = {};
-  let message = "";
+  let message = '';
   let loading = false;
   let loadingModal = false;
 
@@ -40,9 +40,9 @@
 
     const { action, row } = detail;
 
-    if (action === "init-create-assigned_role") {
+    if (action === 'init-create-assigned_role') {
       initCreate();
-    } else if (action === "init-delete-assigned_role") {
+    } else if (action === 'init-delete-assigned_role') {
       initDelete(row);
     }
   }
@@ -80,13 +80,13 @@
 
   function initDelete(row) {
     current = row;
-    console.log("current in delete", current);
+    console.log('current in delete', current);
     isDeteleModalOpen = true;
   }
 
   async function handleSubmitCreate(event) {
     errors = {};
-    message = "";
+    message = '';
     loadingModal = true;
 
     try {
@@ -106,7 +106,7 @@
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
 
     loadingModal = false;
@@ -114,7 +114,7 @@
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = "";
+    message = '';
     loadingModal = true;
 
     try {
@@ -123,7 +123,7 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
 
     loadingModal = false;
@@ -131,7 +131,7 @@
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto("/");
+      await goto('/');
     }
 
     loading = true;

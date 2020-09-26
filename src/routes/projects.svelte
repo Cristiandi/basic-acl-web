@@ -1,28 +1,28 @@
 <script>
-  import { user as userFromStore } from "../common/store.js";
+  import { user as userFromStore } from '../common/store.js';
 
-  import { onMount } from "svelte";
-  import { goto } from "@sapper/app";
+  import { onMount } from 'svelte';
+  import { goto } from '@sapper/app';
 
-  import Grid from "../components/Grid/Grid.svelte";
-  import Modal from "../components/Modal/Modal.svelte";
+  import Grid from '../components/Grid/Grid.svelte';
+  import Modal from '../components/Modal/Modal.svelte';
 
-  import { projectService } from "../modules/projects/project.service";
+  import { projectService } from '../modules/projects/project.service';
 
-  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { createSchema } from "../modules/projects/schemas/create.schema";
-  import { updateSchema } from "../modules/projects/schemas/update.schema.js";
+  import { createSchema } from '../modules/projects/schemas/create.schema';
+  import { updateSchema } from '../modules/projects/schemas/update.schema.js';
 
   let items = [];
 
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== "")
+    ? Object.keys(items[0]).filter((key) => key !== '')
     : [];
 
   let current = {};
   let errors = {};
-  let message = "";
+  let message = '';
   let loading = false;
   let loadingModal = false;
 
@@ -35,11 +35,11 @@
 
     const { action, row } = detail;
 
-    if (action === "init-create-project") {
+    if (action === 'init-create-project') {
       initCreate();
-    } else if (action === "init-update-project") {
+    } else if (action === 'init-update-project') {
       initUpdate(row);
-    } else if (action === "init-delete-project") {
+    } else if (action === 'init-delete-project') {
       initDelete(row);
     }
   }
@@ -58,19 +58,19 @@
     current = {
       ...row,
     };
-    console.log("current in updte", current);
+    console.log('current in updte', current);
     isUpdateModalOpen = true;
   }
 
   function initDelete(row) {
     current = row;
-    console.log("current in delete", current);
+    console.log('current in delete', current);
     isDeteleModalOpen = true;
   }
 
   async function handleSubmitCreate(event) {
     errors = {};
-    message = "";
+    message = '';
     loadingModal = true;
 
     try {
@@ -87,7 +87,7 @@
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
 
     loadingModal = false;
@@ -95,7 +95,7 @@
 
   async function handleSubmitUpdate(event) {
     errors = {};
-    message = "";
+    message = '';
     loadingModal = true;
 
     try {
@@ -112,7 +112,7 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
 
     loadingModal = false;
@@ -120,7 +120,7 @@
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = "";
+    message = '';
 
     loadingModal = true;
 
@@ -130,7 +130,7 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, "response.data.message");
+      message = getFromObjectPathParsed(error, 'response.data.message');
     }
 
     loadingModal = false;
@@ -138,7 +138,7 @@
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto("/");
+      await goto('/');
     }
 
     loading = true;
