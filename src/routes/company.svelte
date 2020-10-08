@@ -206,6 +206,17 @@
         {/if}
       </div>
       <div class="form-group">
+        <label class="form-check-label" for="enable">Confirmation email config</label>
+        <input
+          type="checkbox"
+          class="form-control"
+          name="enable"
+          id="enable"
+          bind:value={current.confirmationEmailConfig}
+          bind:checked={current.confirmationEmailConfig} />
+        {#if errors.confirmationEmailConfig}<span class="validation">{errors.confirmationEmailConfig}</span>{/if}
+      </div>
+      <div class="form-group">
         <label for="serviceAccount">Service account</label>
         <textarea
           type="text"
