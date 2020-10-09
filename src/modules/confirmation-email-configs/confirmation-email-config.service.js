@@ -39,11 +39,10 @@ class ConfirmationEmailConfigService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { from, subject, redirectUrl } = item;
+    const { subject, redirectUrl } = item;
 
     const body = {
       companyUuid,
-      from,
       subject,
       redirectUrl
     };
@@ -74,11 +73,10 @@ class ConfirmationEmailConfigService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { id, from, subject, redirectUrl } = item;
+    const { id, subject, redirectUrl } = item;
 
     const body = {
       companyUuid,
-      from,
       subject,
       redirectUrl
     };

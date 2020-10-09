@@ -176,16 +176,6 @@
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitCreate}>
       <div class="form-group">
-        <label for="from">From</label>
-        <input
-          type="email"
-          class="form-control"
-          name="from"
-          id="from"
-          bind:value={current.from} />
-        {#if errors.from}<span class="validation">{errors.from}</span>{/if}
-      </div>
-      <div class="form-group">
         <label for="subject">Subject</label>
         <input
           type="text"
@@ -233,16 +223,6 @@
   </div>
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitUpdate}>
-      <div class="form-group">
-        <label for="from">From</label>
-        <input
-          type="email"
-          class="form-control"
-          name="from"
-          id="from"
-          bind:value={current.from} />
-        {#if errors.from}<span class="validation">{errors.from}</span>{/if}
-      </div>
       <div class="form-group">
         <label for="subject">Subject</label>
         <input
