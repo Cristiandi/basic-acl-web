@@ -139,6 +139,10 @@
   }
 </style>
 
+<svelte:head>
+  <title>Company</title>
+</svelte:head>
+
 <div class="container">
   <h1>Company</h1>
   <div class="row">
