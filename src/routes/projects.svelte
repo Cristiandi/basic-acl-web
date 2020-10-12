@@ -155,6 +155,10 @@
   }
 </style>
 
+<svelte:head>
+  <title>Projects</title>
+</svelte:head>
+
 {#if loading}
   <div class="text-center">
     <br />

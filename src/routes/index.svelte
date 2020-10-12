@@ -94,7 +94,7 @@
 </style>
 
 <svelte:head>
-  <title>Login</title>
+  <title>Admin login</title>
 </svelte:head>
 
 <div class="container-fluid" id="main">

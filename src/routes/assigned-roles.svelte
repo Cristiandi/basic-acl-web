@@ -151,6 +151,10 @@
   }
 </style>
 
+<svelte:head>
+  <title>Assigned roles</title>
+</svelte:head>
+
 {#if loading}
   <div class="text-center">
     <br />

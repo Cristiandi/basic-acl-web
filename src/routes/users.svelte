@@ -153,6 +153,10 @@
   }
 </style>
 
+<svelte:head>
+  <title>Users</title>
+</svelte:head>
+
 {#if loading}
   <div class="text-center">
     <br />

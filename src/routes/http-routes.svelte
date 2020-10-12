@@ -175,6 +175,10 @@
   }
 </style>
 
+<svelte:head>
+  <title>Http routes</title>
+</svelte:head>
+
 {#if loading}
   <div class="text-center">
     <br />

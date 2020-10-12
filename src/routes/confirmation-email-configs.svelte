@@ -152,6 +152,10 @@
   }
 </style>
 
+<svelte:head>
+  <title>Confirmation email config</title>
+</svelte:head>
+
 {#if loading}
   <div class="text-center">
     <br />

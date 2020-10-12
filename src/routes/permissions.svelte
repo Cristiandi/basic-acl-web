@@ -191,6 +191,10 @@
   }
 </style>
 
+<svelte:head>
+  <title>Permissions</title>
+</svelte:head>
+
 {#if loading}
   <div class="text-center">
     <br />
