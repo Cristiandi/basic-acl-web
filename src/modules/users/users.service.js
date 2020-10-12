@@ -152,7 +152,7 @@ class UserService {
 
   async login(item = {}) {
     const respose = await axios({
-      url: `${this.baseUrl}users/login`,
+      url: `${this.baseUrl}users/login-admin`,
       method: 'post',
       data: {
         ...item
