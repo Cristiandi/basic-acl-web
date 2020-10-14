@@ -1,5 +1,9 @@
 <script>
-  import { showSideBar as showSideBarFromStore } from '../common/store.js';
+  import { 
+    showSideBar as showSideBarFromStore,
+    time as timeFromStore,
+    user as userFromStore
+  } from '../common/store.js';
 	import { goto } from '@sapper/app';
   import { userService } from '../modules/users/users.service.js';
   
@@ -10,9 +14,22 @@
     signOut as signOutIcon,
     alignLeft as alignLeftIcon
   } from 'svelte-awesome/icons';
+  import Toast from './Toast.svelte';
 
 	export let segment;
   console.log(segment, 'segment');
+
+
+  $: missingTime = Math.round((new Date($userFromStore.expirationTime).getTime() - $timeFromStore) / 1000);
+
+  $: {
+    if (missingTime <= 10 && missingTime >= 8 && window.pushToast) {
+      window.pushToast(`your session is going to expire in ${missingTime} segs.`, 'error');
+    }
+    if (missingTime <= 0) {
+      logoutClick({});
+    }
+  }
   
 	async function logoutClick(event) {
 		userService.logout();
@@ -60,8 +77,10 @@
 					<a href="/" class="nav-link" on:click|preventDefault={logoutClick}>
 						<Icon data={signOutIcon} scale={1.5}/>
 					</a>
-				</li>
+        </li>
       </ul>
     </div>
   </div>
 </nav>
+
+<Toast />

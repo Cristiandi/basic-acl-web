@@ -1,4 +1,6 @@
-import { user as userFromStore } from '../../common/store';
+import {
+  user as userFromStore
+} from '../../common/store';
 
 import axios from 'axios';
 
