@@ -61,6 +61,7 @@
   <a href="/company" on:click={closeSideBar}>Your company</a>
   <a href="/users" on:click={closeSideBar}>Users</a>
   <a href="/confirmation-email-configs" on:click={closeSideBar}>Confirmation email config</a>
+  <a href="/forgotten-password-configs" on:click={closeSideBar}>Forgotten password config</a>
   <a href="/roles" on:click={closeSideBar}>Roles</a>
   <a href="/api-keys" on:click={closeSideBar}>API keys</a>
   <a href="/assigned-roles" on:click={closeSideBar}>Assigned roles</a>
