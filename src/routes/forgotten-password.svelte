@@ -1,25 +1,14 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
-  import { onMount } from 'svelte';
-  import { goto } from '@sapper/app';
-
-  import { userService } from '../modules/users/users.service.js';
-
+  import { forgottenPassword } from '../modules/users/schemas/forgotten-password.schema';
   import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
-
-  import { loginSchema } from '../modules/users/schemas/login.schema.js';
+  import { userService } from '../modules/users/users.service.js';
 
   let user = {};
 
+  let successful = true;
   let errors = {};
   let message = '';
   let loading = false;
-
-  onMount(async () => {
-    if ($userFromStore) {
-      await goto('/dashboard');
-    }
-  });
 
   async function handleSubmit(event) {
     errors = {};
@@ -27,7 +16,7 @@
     loading = true;
 
     try {
-      await loginSchema.validate(user, { abortEarly: false });
+      await forgottenPassword.validate(user, { abortEarly: false });
     } catch (error) {
       errors = {
         ...extractErrors(error),
@@ -37,19 +26,15 @@
     }
 
     try {
-      await userService.login({
-        email: user.email,
-        password: user.password,
-        companyUuid: user.companyUuid,
-      });
-
+      const result = await userService.forgottenPassword(user);
+      message = result.message;
       loading = false;
-
-      goto('/dashboard');
+      successful = true;
     } catch (error) {
       console.error(error);
       message = getFromObjectPathParsed(error, 'response.data.message');
       loading = false;
+      successful = false;
     }
   }
 </script>
@@ -87,14 +72,10 @@
   .validation {
     color: red;
   }
-
-  .links {
-    font-size: smaller;
-  }
 </style>
 
 <svelte:head>
-  <title>Admin login</title>
+  <title>Forgotten password</title>
 </svelte:head>
 
 <div class="container-fluid" id="main">
@@ -104,7 +85,7 @@
         centered">
       <div class="card card-container">
         <form name="form" on:submit|preventDefault={handleSubmit}>
-          <h5 class="card-title">Login</h5>
+          <h5 class="card-title">Forgotten password</h5>
           <div class="form-group">
             <input
               type="text"
@@ -129,26 +110,6 @@
               <span class="validation">{errors.email}</span>
             {/if}
           </div>
-          <div class="form-group">
-            <input
-              type="password"
-              class="form-control"
-              name="password"
-              id="password"
-              placeholder="Password"
-              bind:value={user.password} />
-            {#if errors.password}
-              <span class="validation">{errors.password}</span>
-            {/if}
-          </div>
-          <div class="form-group links">
-            <a href="/create-company">Want to start?</a>
-            <br />
-            <span>Already loaded company data? </span><a href="/create-company-admin">Create
-              company admin</a>
-            <br />
-            <a href="/forgotten-password">Forgot password?</a>
-          </div>
           {#if loading}
             <div class="form-group text-right">
               <div class="spinner-border text-dark" role="status">
@@ -157,12 +118,18 @@
             </div>
           {:else}
             <div class="form-group text-right">
-              <button class="btn btn-primary"> <span>Go</span> </button>
+              <button class="btn btn-primary"> <span>Change</span> </button>
             </div>
           {/if}
           {#if message}
             <div class="form-group">
-              <div class="alert alert-danger" role="alert">{message}</div>
+              <div
+                class="alert alert-danger"
+                role="alert"
+                class:alert-danger={successful === false}
+                class:alert-success={successful}>
+                {message}
+              </div>
             </div>
           {/if}
         </form>

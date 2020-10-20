@@ -1,10 +1,10 @@
 import * as yup from 'yup';
 
-export const createSchema = yup.object().shape({
-  email: yup.string().required().email(),
-  phone: yup.string().required().min(10).max(10),
+export const changeForgottenPassword = yup.object().shape({
+  companyUuid: yup.string().required(),
+  code: yup.string().required(),
   password: yup.string().required().min(5),
-  passwordConfirm: yup
+  confirmedPassword: yup
   .string()
   .required()
   .oneOf([yup.ref('password'), null], 'Passwords do not match.')
