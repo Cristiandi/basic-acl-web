@@ -64,14 +64,25 @@ class CompanyService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { id, name, serviceAccount, firebaseConfig, countryCode, confirmationEmailConfig } = company;
+    const {
+      id,
+      name,
+      serviceAccount,
+      firebaseConfig,
+      countryCode,
+      confirmationEmailConfig,
+      forgottenPasswordConfig,
+      logoUrl
+    } = company;
 
     const body = {
       name,
       serviceAccount,
       firebaseConfig,
       countryCode,
-      confirmationEmailConfig
+      confirmationEmailConfig,
+      forgottenPasswordConfig,
+      logoUrl
     };
 
     console.log(body, 'body');

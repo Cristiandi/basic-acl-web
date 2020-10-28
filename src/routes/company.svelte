@@ -210,15 +210,39 @@
         {/if}
       </div>
       <div class="form-group">
-        <label class="form-check-label" for="enable">Confirmation email config</label>
+        <label class="form-check-label" for="confirmationEmailConfig">Confirmation email config</label>
         <input
           type="checkbox"
           class="form-control"
-          name="enable"
-          id="enable"
+          name="confirmationEmailConfig"
+          id="confirmationEmailConfig"
           bind:value={current.confirmationEmailConfig}
           bind:checked={current.confirmationEmailConfig} />
         {#if errors.confirmationEmailConfig}<span class="validation">{errors.confirmationEmailConfig}</span>{/if}
+      </div>
+      <div class="form-group">
+        <label class="form-check-label" for="confirmationEmailConfig">Forgotten password config</label>
+        <input
+          type="checkbox"
+          class="form-control"
+          name="confirmationEmailConfig"
+          id="forgottenPasswordConfig"
+          bind:value={current.forgottenPasswordConfig}
+          bind:checked={current.forgottenPasswordConfig} />
+        {#if errors.forgottenPasswordConfig}<span class="validation">{errors.forgottenPasswordConfig}</span>{/if}
+      </div>
+      <div class="form-group">
+        <label for="logoUrl">Company logo</label>
+        <textarea
+          type="text"
+          class="form-control"
+          name="logoUrl"
+          id="logoUrl"
+          rows="3"
+          bind:value={current.logoUrl} />
+        {#if errors.logoUrl}
+          <span class="validation">{errors.logoUrl}</span>
+        {/if}
       </div>
       <div class="form-group">
         <label for="serviceAccount">Service account</label>
