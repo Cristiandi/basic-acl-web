@@ -21,7 +21,7 @@
     "polka": "next",
     "sirv": "1.0.7",
     "svelte-awesome": "2.3.0",
-    "yup": "0.32.0"
+    "yup": "0.32.1"
   },
   "devDependencies": {
     "@babel/core": "7.12.9",
