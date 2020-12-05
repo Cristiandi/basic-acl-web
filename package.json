@@ -19,7 +19,7 @@
     "dotenv": "8.2.0",
     "lodash": "4.17.20",
     "polka": "next",
-    "sirv": "1.0.7",
+    "sirv": "1.0.9",
     "svelte-awesome": "2.3.0",
     "yup": "0.32.1"
   },
