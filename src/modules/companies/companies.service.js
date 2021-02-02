@@ -88,7 +88,7 @@ class CompanyService {
     console.log(body, 'body');
 
     const response = await axios({
-      url: `${this.baseUrl}companies/${id}`,
+      url: `${this.baseUrl}companies/${companyUuid}`,
       method: 'patch',
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -114,7 +114,7 @@ class CompanyService {
     const { accessToken, companyUuid } = dataForAuth;
 
     const response = await axios({
-      url: `${this.baseUrl}companies/${id}`,
+      url: `${this.baseUrl}companies/${companyUuid}`,
       method: 'delete',
       headers: {
         Authorization: `Bearer ${accessToken}`,
