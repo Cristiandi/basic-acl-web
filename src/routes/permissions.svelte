@@ -1,33 +1,35 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
+  import { user as userFromStore } from "../common/store.js";
 
-  import Select from 'svelte-select';
-  import { onMount } from 'svelte';
-  import { goto } from '@sapper/app';
+  import Select from "svelte-select";
+  import { onMount } from "svelte";
+  import { goto } from "@sapper/app";
 
-  import Grid from '../components/Grid/Grid.svelte';
-  import Modal from '../components/Modal/Modal.svelte';
+  import Grid from "../components/Grid/Grid.svelte";
+  import Modal from "../components/Modal/Modal.svelte";
 
-  import { permissionService } from '../modules/permissions/permission.service';
-  import { roleService } from '../modules/roles/role.service';
-  import { httpRouteService } from '../modules/http-routes/http-route.service';
+  import { permissionService } from "../modules/permissions/permission.service";
+  import { roleService } from "../modules/roles/role.service";
+  import { httpRouteService } from "../modules/http-routes/http-route.service";
+  import { graphqlActionService } from "../modules/graphql-actions/graphql-action.service";
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
 
-  import { createSchema } from '../modules/permissions/schemas/create.schema';
-  import { updateSchema } from '../modules/permissions/schemas/update.schema.js';
+  import { createSchema } from "../modules/permissions/schemas/create.schema";
+  import { updateSchema } from "../modules/permissions/schemas/update.schema.js";
 
   let items = [];
   let rolesList = [];
   let httpRoutesList = [];
+  let graphqlActionsList = [];
 
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== '')
+    ? Object.keys(items[0]).filter((key) => key !== "")
     : [];
 
   let current = {};
   let errors = {};
-  let message = '';
+  let message = "";
   let loading = false;
   let loadingModal = false;
 
@@ -40,11 +42,11 @@
 
     const { action, row } = detail;
 
-    if (action === 'init-create-permission') {
+    if (action === "init-create-permission") {
       initCreate();
-    } else if (action === 'init-update-permission') {
+    } else if (action === "init-update-permission") {
       initUpdate(row);
-    } else if (action === 'init-delete-permission') {
+    } else if (action === "init-delete-permission") {
       initDelete(row);
     }
   }
@@ -67,6 +69,12 @@
     return data.map((item) => ({ value: item.id, label: item.name }));
   }
 
+  async function loadGraphqlActionsList() {
+    const data = await graphqlActionService.findAll();
+
+    return data.map((item) => ({ value: item.id, label: item.name }));
+  }
+
   function initCreate() {
     isCreateModalOpen = true;
   }
@@ -78,32 +86,55 @@
         value: row.roleId,
         label: row.roleName,
       },
-      httpRoute: {
-        value: row.httpRouteId,
-        label: row.httpRouteName,
-      },
     };
-    console.log('current in updte', current);
+
+    if (row.httpRouteId) {
+      current = {
+        ...current,
+        httpRoute: {
+          value: row.httpRouteId || undefined,
+          label: row.httpRouteName || undefined,
+        },
+      };
+    }
+
+    if (row.graphqlActionId) {
+      current = {
+        ...current,
+        graphqlAction: {
+          value: row.graphqlActionId,
+          label: row.graphqlActionName,
+        },
+      };
+    }
+    
+    console.log("current in updte", JSON.stringify(current));
     isUpdateModalOpen = true;
   }
 
   function initDelete(row) {
     current = row;
-    console.log('current in delete', current);
+    console.log("current in delete", current);
     isDeteleModalOpen = true;
   }
 
   async function handleSubmitCreate(event) {
     errors = {};
-    message = '';
+    message = "";
 
     loadingModal = true;
 
     try {
       current.roleId = current.role ? current.role.value : current.role;
+
       current.httpRouteId = current.httpRoute
         ? current.httpRoute.value
         : current.httpRoute;
+
+      current.graphqlActionId = current.graphqlAction
+        ? current.graphqlAction.value
+        : current.graphqlAction;
+
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
@@ -118,7 +149,7 @@
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
 
     loadingModal = false;
@@ -126,14 +157,20 @@
 
   async function handleSubmitUpdate(event) {
     errors = {};
-    message = '';
+    message = "";
     loadingModal = true;
 
     try {
       current.roleId = current.role ? current.role.value : current.role;
+
       current.httpRouteId = current.httpRoute
         ? current.httpRoute.value
         : current.httpRoute;
+
+      current.graphqlActionId = current.graphqlAction
+        ? current.graphqlAction.value
+        : current.graphqlAction;
+
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
@@ -147,7 +184,7 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
 
     loadingModal = false;
@@ -155,7 +192,7 @@
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = '';
+    message = "";
     loadingModal = true;
 
     try {
@@ -164,7 +201,7 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getFromObjectPathParsed(error, "response.data.message");
     }
 
     loadingModal = false;
@@ -172,7 +209,7 @@
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto('/');
+      await goto("/");
     }
 
     loading = true;
@@ -180,16 +217,11 @@
     items = await loadData();
     rolesList = await loadRolesList();
     httpRoutesList = await loadHttpRoutesList();
+    graphqlActionsList = await loadGraphqlActionsList();
 
     loading = false;
   });
 </script>
-
-<style>
-  .validation {
-    color: red;
-  }
-</style>
 
 <svelte:head>
   <title>Permissions</title>
@@ -204,12 +236,17 @@
   </div>
 {:else}
   <Grid
-    title={'Permissions'}
+    title={"Permissions"}
     {columns}
     rows={items}
     limit={10}
-    actions={['init-create-permission', 'init-update-permission', 'init-delete-permission']}
-    on:message={handleMessage} />
+    actions={[
+      "init-create-permission",
+      "init-update-permission",
+      "init-delete-permission",
+    ]}
+    on:message={handleMessage}
+  />
 {/if}
 
 <Modal bind:isOpen={isCreateModalOpen}>
@@ -226,7 +263,8 @@
           name="allowed"
           id="allowed"
           bind:value={current.allowed}
-          bind:checked={current.allowed} />
+          bind:checked={current.allowed}
+        />
         {#if errors.allowed}
           <span class="validation">{errors.allowed}</span>
         {/if}
@@ -239,10 +277,20 @@
         {/if}
       </div>
       <div class="form-group">
-        <label for="role">Http route</label>
+        <label for="httpRoute">Http route</label>
         <Select items={httpRoutesList} bind:selectedValue={current.httpRoute} />
         {#if errors.httpRouteId}
           <span class="validation">{errors.httpRouteId}</span>
+        {/if}
+      </div>
+      <div class="form-group">
+        <label for="graphqlAction">Graphql Action</label>
+        <Select
+          items={graphqlActionsList}
+          bind:selectedValue={current.graphqlAction}
+        />
+        {#if errors.graphqlActionId}
+          <span class="validation">{errors.graphqlActionId}</span>
         {/if}
       </div>
       {#if loadingModal}
@@ -281,7 +329,8 @@
           name="allowed"
           id="allowed"
           bind:value={current.allowed}
-          bind:checked={current.allowed} />
+          bind:checked={current.allowed}
+        />
         {#if errors.allowed}
           <span class="validation">{errors.allowed}</span>
         {/if}
@@ -298,6 +347,16 @@
         <Select items={httpRoutesList} bind:selectedValue={current.httpRoute} />
         {#if errors.httpRouteId}
           <span class="validation">{errors.httpRouteId}</span>
+        {/if}
+      </div>
+      <div class="form-group">
+        <label for="graphqlAction">Graphql Action</label>
+        <Select
+          items={graphqlActionsList}
+          bind:selectedValue={current.graphqlAction}
+        />
+        {#if errors.graphqlActionId}
+          <span class="validation">{errors.graphqlActionId}</span>
         {/if}
       </div>
       {#if loadingModal}
@@ -352,3 +411,9 @@
     </form>
   </div>
 </Modal>
+
+<style>
+  .validation {
+    color: red;
+  }
+</style>
