@@ -26,6 +26,9 @@
   let current = {};
   let errors = {};
   let message = '';
+  let loading = false;
+  let loadingCreateUsers = false;
+  let loadingModal = false;
 
   let isUpdateModalOpen = false;
 
@@ -62,6 +65,7 @@
   async function handleSubmitUpdate(event) {
     errors = {};
     message = '';
+    loadingModal = true;
 
     try {
       if (!current.serviceAccountString) {
@@ -78,6 +82,7 @@
     } catch (error) {
       console.error('error', error);
       message = error.message || 'something went wrong.';
+      loadingModal = false;
       return;
     }
 
@@ -85,6 +90,7 @@
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      loadingModal = false;
       return;
     }
 
@@ -96,21 +102,24 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, 'response.data.message');
     }
+
+    loadingModal = false;
   }
 
   async function handleCreateUsersFromFirebaseClick(event) {
     let localMessage = '';
+    loadingCreateUsers = true;
     try {
-      const result = await userService.createUsersFromFirebase(); 
+      const result = await userService.createUsersFromFirebase();
       localMessage = result.message;
 
       window.pushToast(localMessage, 'success');
-
     } catch (error) {
       localMessage = getFromObjectPathParsed(error, 'response.data.message');
 
       window.pushToast(localMessage, 'error');
     }
+    loadingCreateUsers = false;
   }
 
   onMount(async () => {
@@ -118,7 +127,9 @@
       await goto('/');
     }
 
+    loading = true;
     companies = await loadData();
+    loading = false;
   });
 </script>
 
@@ -128,25 +139,47 @@
   }
 </style>
 
+<svelte:head>
+  <title>Company</title>
+</svelte:head>
+
 <div class="container">
   <h1>Company</h1>
   <div class="row">
     <div class="col-12">
-      <button
-        type="button"
-        class="btn btn-primary"
-        on:click={handleCreateUsersFromFirebaseClick}>Create users from firebase</button>
+      {#if loadingCreateUsers}
+        <div class="text-left">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <button
+          type="button"
+          class="btn btn-primary"
+          on:click={handleCreateUsersFromFirebaseClick}>Create users from
+          firebase</button>
+      {/if}
     </div>
   </div>
 </div>
 
-<Grid
-  title={''}
-  {columns}
-  rows={companies}
-  limit={10}
-  actions={['init-update-company']}
-  on:message={handleMessage} />
+{#if loading}
+  <div class="text-center">
+    <br/>
+    <div class="spinner-border text-dark" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+{:else}
+  <Grid
+    title={''}
+    {columns}
+    rows={companies}
+    limit={10}
+    actions={['init-update-company']}
+    on:message={handleMessage} />
+{/if}
 
 <Modal bind:isOpen={isUpdateModalOpen}>
   <div slot="header">
@@ -177,6 +210,41 @@
         {/if}
       </div>
       <div class="form-group">
+        <label class="form-check-label" for="confirmationEmailConfig">Confirmation email config</label>
+        <input
+          type="checkbox"
+          class="form-control"
+          name="confirmationEmailConfig"
+          id="confirmationEmailConfig"
+          bind:value={current.confirmationEmailConfig}
+          bind:checked={current.confirmationEmailConfig} />
+        {#if errors.confirmationEmailConfig}<span class="validation">{errors.confirmationEmailConfig}</span>{/if}
+      </div>
+      <div class="form-group">
+        <label class="form-check-label" for="confirmationEmailConfig">Forgotten password config</label>
+        <input
+          type="checkbox"
+          class="form-control"
+          name="confirmationEmailConfig"
+          id="forgottenPasswordConfig"
+          bind:value={current.forgottenPasswordConfig}
+          bind:checked={current.forgottenPasswordConfig} />
+        {#if errors.forgottenPasswordConfig}<span class="validation">{errors.forgottenPasswordConfig}</span>{/if}
+      </div>
+      <div class="form-group">
+        <label for="logoUrl">Company logo</label>
+        <textarea
+          type="text"
+          class="form-control"
+          name="logoUrl"
+          id="logoUrl"
+          rows="3"
+          bind:value={current.logoUrl} />
+        {#if errors.logoUrl}
+          <span class="validation">{errors.logoUrl}</span>
+        {/if}
+      </div>
+      <div class="form-group">
         <label for="serviceAccount">Service account</label>
         <textarea
           type="text"
@@ -202,9 +270,19 @@
           <span class="validation">{errors.firebaseConfig}</span>
         {/if}
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Update</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Update</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>

@@ -1,7 +1,7 @@
 <script>
   import { user as userFromStore } from "../common/store.js";
 
-  import Select from 'svelte-select';
+  import Select from "svelte-select";
   import { onMount } from "svelte";
   import { goto } from "@sapper/app";
 
@@ -11,6 +11,7 @@
   import { permissionService } from "../modules/permissions/permission.service";
   import { roleService } from "../modules/roles/role.service";
   import { httpRouteService } from "../modules/http-routes/http-route.service";
+  import { graphqlActionService } from "../modules/graphql-actions/graphql-action.service";
 
   import { extractErrors, getFromObjectPathParsed } from "../common/utils.js";
 
@@ -20,6 +21,7 @@
   let items = [];
   let rolesList = [];
   let httpRoutesList = [];
+  let graphqlActionsList = [];
 
   $: columns = items.length
     ? Object.keys(items[0]).filter((key) => key !== "")
@@ -28,6 +30,8 @@
   let current = {};
   let errors = {};
   let message = "";
+  let loading = false;
+  let loadingModal = false;
 
   let isCreateModalOpen = false;
   let isUpdateModalOpen = false;
@@ -65,6 +69,12 @@
     return data.map((item) => ({ value: item.id, label: item.name }));
   }
 
+  async function loadGraphqlActionsList() {
+    const data = await graphqlActionService.findAll();
+
+    return data.map((item) => ({ value: item.id, label: item.name }));
+  }
+
   function initCreate() {
     isCreateModalOpen = true;
   }
@@ -74,14 +84,31 @@
       ...row,
       role: {
         value: row.roleId,
-        label: row.roleName
+        label: row.roleName,
       },
-      httpRoute: {
-        value: row.httpRouteId,
-        label: row.httpRouteName
-      }
     };
-    console.log("current in updte", current);
+
+    if (row.httpRouteId) {
+      current = {
+        ...current,
+        httpRoute: {
+          value: row.httpRouteId || undefined,
+          label: row.httpRouteName || undefined,
+        },
+      };
+    }
+
+    if (row.graphqlActionId) {
+      current = {
+        ...current,
+        graphqlAction: {
+          value: row.graphqlActionId,
+          label: row.graphqlActionName,
+        },
+      };
+    }
+    
+    console.log("current in updte", JSON.stringify(current));
     isUpdateModalOpen = true;
   }
 
@@ -95,13 +122,24 @@
     errors = {};
     message = "";
 
+    loadingModal = true;
+
     try {
       current.roleId = current.role ? current.role.value : current.role;
-      current.httpRouteId = current.httpRoute ? current.httpRoute.value : current.httpRoute;
+
+      current.httpRouteId = current.httpRoute
+        ? current.httpRoute.value
+        : current.httpRoute;
+
+      current.graphqlActionId = current.graphqlAction
+        ? current.graphqlAction.value
+        : current.graphqlAction;
+
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
       console.log(error);
+      loadingModal = false;
       return;
     }
 
@@ -113,18 +151,30 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitUpdate(event) {
     errors = {};
     message = "";
+    loadingModal = true;
 
     try {
       current.roleId = current.role ? current.role.value : current.role;
-      current.httpRouteId = current.httpRoute ? current.httpRoute.value : current.httpRoute;
+
+      current.httpRouteId = current.httpRoute
+        ? current.httpRoute.value
+        : current.httpRoute;
+
+      current.graphqlActionId = current.graphqlAction
+        ? current.graphqlAction.value
+        : current.graphqlAction;
+
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      loadingModal = false;
       return;
     }
 
@@ -136,11 +186,14 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitDelete(event) {
     errors = {};
     message = "";
+    loadingModal = true;
 
     try {
       await permissionService.remove(current);
@@ -150,6 +203,8 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, "response.data.message");
     }
+
+    loadingModal = false;
   }
 
   onMount(async () => {
@@ -157,25 +212,42 @@
       await goto("/");
     }
 
+    loading = true;
+
     items = await loadData();
     rolesList = await loadRolesList();
     httpRoutesList = await loadHttpRoutesList();
+    graphqlActionsList = await loadGraphqlActionsList();
+
+    loading = false;
   });
 </script>
 
-<style>
-  .validation {
-    color: red;
-  }
-</style>
+<svelte:head>
+  <title>Permissions</title>
+</svelte:head>
 
-<Grid
-  title={'Permissions'}
-  {columns}
-  rows={items}
-  limit={10}
-  actions={['init-create-permission', 'init-update-permission', 'init-delete-permission']}
-  on:message={handleMessage} />
+{#if loading}
+  <div class="text-center">
+    <br />
+    <div class="spinner-border text-dark" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+{:else}
+  <Grid
+    title={"Permissions"}
+    {columns}
+    rows={items}
+    limit={10}
+    actions={[
+      "init-create-permission",
+      "init-update-permission",
+      "init-delete-permission",
+    ]}
+    on:message={handleMessage}
+  />
+{/if}
 
 <Modal bind:isOpen={isCreateModalOpen}>
   <div slot="header">
@@ -186,27 +258,54 @@
       <div class="form-group">
         <label class="form-check-label" for="allowed">Allowed</label>
         <input
-            type="checkbox"
-            class="form-control"
-            name="allowed"
-            id="allowed"
-            bind:value={current.allowed}
-            bind:checked={current.allowed} />
-        {#if errors.allowed}<span class="validation">{errors.allowed}</span>{/if}
+          type="checkbox"
+          class="form-control"
+          name="allowed"
+          id="allowed"
+          bind:value={current.allowed}
+          bind:checked={current.allowed}
+        />
+        {#if errors.allowed}
+          <span class="validation">{errors.allowed}</span>
+        {/if}
       </div>
       <div class="form-group">
         <label for="role">Role</label>
         <Select items={rolesList} bind:selectedValue={current.role} />
-        {#if errors.roleId}<span class="validation">{errors.projectId}</span>{/if}
+        {#if errors.roleId}
+          <span class="validation">{errors.projectId}</span>
+        {/if}
       </div>
       <div class="form-group">
-        <label for="role">Http route</label>
+        <label for="httpRoute">Http route</label>
         <Select items={httpRoutesList} bind:selectedValue={current.httpRoute} />
-        {#if errors.httpRouteId}<span class="validation">{errors.httpRouteId}</span>{/if}
+        {#if errors.httpRouteId}
+          <span class="validation">{errors.httpRouteId}</span>
+        {/if}
       </div>
       <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Create</span> </button>
+        <label for="graphqlAction">Graphql Action</label>
+        <Select
+          items={graphqlActionsList}
+          bind:selectedValue={current.graphqlAction}
+        />
+        {#if errors.graphqlActionId}
+          <span class="validation">{errors.graphqlActionId}</span>
+        {/if}
       </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Create</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -225,27 +324,54 @@
       <div class="form-group">
         <label class="form-check-label" for="allowed">Allowed</label>
         <input
-            type="checkbox"
-            class="form-control"
-            name="allowed"
-            id="allowed"
-            bind:value={current.allowed}
-            bind:checked={current.allowed} />
-        {#if errors.allowed}<span class="validation">{errors.allowed}</span>{/if}
+          type="checkbox"
+          class="form-control"
+          name="allowed"
+          id="allowed"
+          bind:value={current.allowed}
+          bind:checked={current.allowed}
+        />
+        {#if errors.allowed}
+          <span class="validation">{errors.allowed}</span>
+        {/if}
       </div>
       <div class="form-group">
         <label for="role">Role</label>
         <Select items={rolesList} bind:selectedValue={current.role} />
-        {#if errors.roleId}<span class="validation">{errors.projectId}</span>{/if}
+        {#if errors.roleId}
+          <span class="validation">{errors.projectId}</span>
+        {/if}
       </div>
       <div class="form-group">
         <label for="role">Http route</label>
         <Select items={httpRoutesList} bind:selectedValue={current.httpRoute} />
-        {#if errors.httpRouteId}<span class="validation">{errors.httpRouteId}</span>{/if}
+        {#if errors.httpRouteId}
+          <span class="validation">{errors.httpRouteId}</span>
+        {/if}
       </div>
       <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Update</span> </button>
+        <label for="graphqlAction">Graphql Action</label>
+        <Select
+          items={graphqlActionsList}
+          bind:selectedValue={current.graphqlAction}
+        />
+        {#if errors.graphqlActionId}
+          <span class="validation">{errors.graphqlActionId}</span>
+        {/if}
       </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>update</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -264,9 +390,19 @@
       <div class="form-group">
         <h3>¿Do you want to delete?</h3>
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Delete</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Delete</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -275,3 +411,9 @@
     </form>
   </div>
 </Modal>
+
+<style>
+  .validation {
+    color: red;
+  }
+</style>

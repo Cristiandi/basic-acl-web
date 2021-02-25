@@ -59,11 +59,14 @@
 <div id="mySidebar" class="sidebar bg-dark" transition:fade="{{ duration: 500 }}">
   <span class="closebtn" on:click={closeSideBar}> × </span>
   <a href="/company" on:click={closeSideBar}>Your company</a>
-  <a href="/users" on:click={closeSideBar}>Your users</a>
-  <a href="/roles" on:click={closeSideBar}>Your roles</a>
-  <a href="/api-keys" on:click={closeSideBar}>Your api keys</a>
-  <a href="/assigned-roles" on:click={closeSideBar}>Your assigned roles</a>
-  <a href="/projects" on:click={closeSideBar}>Your projects</a>
-  <a href="/http-routes" on:click={closeSideBar}>Your http routes</a>
-  <a href="/permissions" on:click={closeSideBar}>Your permissions</a>
+  <a href="/users" on:click={closeSideBar}>Users</a>
+  <a href="/confirmation-email-configs" on:click={closeSideBar}>Confirmation email config</a>
+  <a href="/forgotten-password-configs" on:click={closeSideBar}>Forgotten password config</a>
+  <a href="/roles" on:click={closeSideBar}>Roles</a>
+  <a href="/api-keys" on:click={closeSideBar}>API keys</a>
+  <a href="/assigned-roles" on:click={closeSideBar}>Assigned roles</a>
+  <a href="/projects" on:click={closeSideBar}>Projects</a>
+  <a href="/http-routes" on:click={closeSideBar}>HTTP routes</a>
+  <a href="/graphql-actions" on:click={closeSideBar}>GraphQL actions</a>
+  <a href="/permissions" on:click={closeSideBar}>Permissions</a>
 </div>

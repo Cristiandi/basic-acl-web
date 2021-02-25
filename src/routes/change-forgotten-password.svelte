@@ -1,25 +1,33 @@
+<script context="module">
+  export async function preload({ params, query }) {
+    const { companyUuid, code } = query;
+
+    if (!companyUuid) {
+      return this.error(400, 'companyUuid is required.');
+    }
+    if (!code) {
+      return this.error(400, 'code is required.');
+    }
+
+    return {
+      companyUuid,
+      code,
+    };
+  }
+</script>
+
 <script>
-  import { user as userFromStore } from '../common/store.js';
-  import { onMount } from 'svelte';
   import { goto } from '@sapper/app';
-
-  import { userService } from '../modules/users/users.service.js';
-
+  import { changeForgottenPassword } from '../modules/users/schemas/change-forgotten-password.schema';
   import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
-
-  import { loginSchema } from '../modules/users/schemas/login.schema.js';
+  import { userService } from '../modules/users/users.service.js';
 
   let user = {};
 
+  let successful = true;
   let errors = {};
   let message = '';
   let loading = false;
-
-  onMount(async () => {
-    if ($userFromStore) {
-      await goto('/dashboard');
-    }
-  });
 
   async function handleSubmit(event) {
     errors = {};
@@ -27,7 +35,9 @@
     loading = true;
 
     try {
-      await loginSchema.validate(user, { abortEarly: false });
+      user.companyUuid = companyUuid;
+      user.code = code;
+      await changeForgottenPassword.validate(user, { abortEarly: false });
     } catch (error) {
       errors = {
         ...extractErrors(error),
@@ -37,21 +47,24 @@
     }
 
     try {
-      await userService.login({
-        email: user.email,
-        password: user.password,
-        companyUuid: user.companyUuid,
-      });
-
+      const result = await userService.changeForgottenPassword(user);
+      message = result.message;
       loading = false;
+      successful = true;
 
-      goto('/dashboard');
+      setTimeout(async () => {
+        await goto(result.url);  
+      }, 2000);
     } catch (error) {
       console.error(error);
       message = getFromObjectPathParsed(error, 'response.data.message');
       loading = false;
+      successful = false;
     }
   }
+
+  export let companyUuid;
+  export let code;
 </script>
 
 <style>
@@ -87,14 +100,10 @@
   .validation {
     color: red;
   }
-
-  .links {
-    font-size: smaller;
-  }
 </style>
 
 <svelte:head>
-  <title>Admin login</title>
+  <title>Change forgotten password</title>
 </svelte:head>
 
 <div class="container-fluid" id="main">
@@ -104,50 +113,30 @@
         centered">
       <div class="card card-container">
         <form name="form" on:submit|preventDefault={handleSubmit}>
-          <h5 class="card-title">Login</h5>
-          <div class="form-group">
-            <input
-              type="text"
-              class="form-control"
-              name="companyUuid"
-              id="companyUuid"
-              placeholder="Company uuid"
-              bind:value={user.companyUuid} />
-            {#if errors.companyUuid}
-              <span class="validation">{errors.companyUuid}</span>
-            {/if}
-          </div>
-          <div class="form-group">
-            <input
-              type="email"
-              class="form-control"
-              name="email"
-              id="email"
-              placeholder="Email"
-              bind:value={user.email} />
-            {#if errors.password}
-              <span class="validation">{errors.email}</span>
-            {/if}
-          </div>
+          <h5 class="card-title">Change password</h5>
           <div class="form-group">
             <input
               type="password"
               class="form-control"
               name="password"
               id="password"
-              placeholder="Password"
+              placeholder="New password"
               bind:value={user.password} />
             {#if errors.password}
               <span class="validation">{errors.password}</span>
             {/if}
           </div>
-          <div class="form-group links">
-            <a href="/create-company">Want to start?</a>
-            <br />
-            <span>Already loaded company data? </span><a href="/create-company-admin">Create
-              company admin</a>
-            <br />
-            <a href="/forgotten-password">Forgot password?</a>
+          <div class="form-group">
+            <input
+              type="password"
+              class="form-control"
+              name="confirmedPassword"
+              id="confirmedPassword"
+              placeholder="Confirm password"
+              bind:value={user.confirmedPassword} />
+            {#if errors.confirmedPassword}
+              <span class="validation">{errors.confirmedPassword}</span>
+            {/if}
           </div>
           {#if loading}
             <div class="form-group text-right">
@@ -157,12 +146,18 @@
             </div>
           {:else}
             <div class="form-group text-right">
-              <button class="btn btn-primary"> <span>Go</span> </button>
+              <button class="btn btn-primary"> <span>Change</span> </button>
             </div>
           {/if}
           {#if message}
             <div class="form-group">
-              <div class="alert alert-danger" role="alert">{message}</div>
+              <div
+                class="alert alert-danger"
+                role="alert"
+                class:alert-danger={successful === false}
+                class:alert-success={successful}>
+                {message}
+              </div>
             </div>
           {/if}
         </form>

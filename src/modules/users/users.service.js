@@ -1,4 +1,6 @@
-import { user as userFromStore } from '../../common/store';
+import {
+  user as userFromStore
+} from '../../common/store';
 
 import axios from 'axios';
 
@@ -152,7 +154,7 @@ class UserService {
 
   async login(item = {}) {
     const respose = await axios({
-      url: `${this.baseUrl}users/login`,
+      url: `${this.baseUrl}users/login-admin`,
       method: 'post',
       data: {
         ...item
@@ -169,7 +171,6 @@ class UserService {
 
     return data;
   }
-
 
   logout () {
     if (process.browser) {
@@ -204,6 +205,56 @@ class UserService {
     return {
       ...data,
       message: 'soon as the process ends you will see your users.'
+    };
+  }
+
+  async forgottenPassword(item = {}) {
+    const { companyUuid, email } = item;
+
+    const body = {
+      companyUuid,
+      email,
+    };
+
+    const response = await axios({
+      url: `${this.baseUrl}users/forgotten-password`,
+      method: 'post',
+      data: {
+        ...body
+      }
+    });
+
+    const { data } = response;
+
+    return {
+      ...data,
+      message: 'mail sent!'
+    };
+  }
+
+  async changeForgottenPassword(item = {}) {
+    const { companyUuid, code, password, confirmedPassword } = item;
+
+    const body = {
+      companyUuid,
+      code,
+      password,
+      confirmedPassword
+    };
+
+    const response = await axios({
+      url: `${this.baseUrl}users/forgotten-password-code`,
+      method: 'post',
+      data: {
+        ...body
+      }
+    });
+
+    const { data } = response;
+
+    return {
+      ...data,
+      message: 'pasword updated!'
     };
   }
 }

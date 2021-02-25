@@ -1,20 +1,23 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
+  import { user as userFromStore } from '../common/store';
 
+  import Select from 'svelte-select';
   import { onMount } from 'svelte';
   import { goto } from '@sapper/app';
 
   import Grid from '../components/Grid/Grid.svelte';
   import Modal from '../components/Modal/Modal.svelte';
 
+  import { graphqlActionService } from '../modules/graphql-actions/graphql-action.service';
   import { projectService } from '../modules/projects/project.service';
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getFromObjectPathParsed } from '../common/utils';
 
-  import { createSchema } from '../modules/projects/schemas/create.schema';
-  import { updateSchema } from '../modules/projects/schemas/update.schema.js';
+  import { createSchema } from '../modules/graphql-actions/schemas/create.schema';
+  import { updateSchema } from '../modules/graphql-actions/schemas/update.schema';
 
   let items = [];
+  let projectsList = [];
 
   $: columns = items.length
     ? Object.keys(items[0]).filter((key) => key !== '')
@@ -35,19 +38,25 @@
 
     const { action, row } = detail;
 
-    if (action === 'init-create-project') {
+    if (action === 'init-create-graphql_action') {
       initCreate();
-    } else if (action === 'init-update-project') {
+    } else if (action === 'init-update-graphql_action') {
       initUpdate(row);
-    } else if (action === 'init-delete-project') {
+    } else if (action === 'init-delete-graphql_action') {
       initDelete(row);
     }
   }
 
   async function loadData() {
-    const data = await projectService.findAll();
+    const data = await graphqlActionService.findAll();
 
     return data;
+  }
+
+  async function loadProjectsList() {
+    const data = await projectService.findAll();
+
+    return data.map((item) => ({ value: item.id, label: item.name }));
   }
 
   function initCreate() {
@@ -57,6 +66,10 @@
   function initUpdate(row) {
     current = {
       ...row,
+      project: {
+        value: row.projectId,
+        label: row.projectName,
+      },
     };
     console.log('current in updte', current);
     isUpdateModalOpen = true;
@@ -74,15 +87,23 @@
     loadingModal = true;
 
     try {
+      current.projectId = current.project
+        ? current.project.value
+        : current.project;
+
+      current.isQuery = current.isQuery || false;
+      current.isMutation = current.isMutation || false;
+
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      console.log(error);
       loadingModal = false;
       return;
     }
 
     try {
-      await projectService.create(current);
+      await graphqlActionService.create(current);
       items = await loadData();
       isCreateModalOpen = false;
       current = {};
@@ -99,6 +120,9 @@
     loadingModal = true;
 
     try {
+      current.projectId = current.project
+        ? current.project.value
+        : current.project;
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
@@ -107,7 +131,7 @@
     }
 
     try {
-      await projectService.update(current);
+      await graphqlActionService.update(current);
       items = await loadData();
       isUpdateModalOpen = false;
       current = {};
@@ -121,11 +145,10 @@
   async function handleSubmitDelete(event) {
     errors = {};
     message = '';
-
     loadingModal = true;
 
     try {
-      await projectService.remove(current);
+      await graphqlActionService.remove(current);
       items = await loadData();
       isDeteleModalOpen = false;
       current = {};
@@ -144,6 +167,7 @@
     loading = true;
 
     items = await loadData();
+    projectsList = await loadProjectsList();
 
     loading = false;
   });
@@ -156,7 +180,7 @@
 </style>
 
 <svelte:head>
-  <title>Projects</title>
+  <title>GraphQL actions</title>
 </svelte:head>
 
 {#if loading}
@@ -168,11 +192,11 @@
   </div>
 {:else}
   <Grid
-    title={'Projects'}
+    title={'GraphQL Actions'}
     {columns}
     rows={items}
     limit={10}
-    actions={['init-create-project', 'init-update-project', 'init-delete-project']}
+    actions={['init-create-graphql_action', 'init-update-graphql_action', 'init-delete-graphql_action']}
     on:message={handleMessage} />
 {/if}
 
@@ -193,14 +217,36 @@
         {#if errors.name}<span class="validation">{errors.name}</span>{/if}
       </div>
       <div class="form-group">
-        <label for="code">Code</label>
+        <label for="method">isQuery</label>
         <input
-          type="text"
+          type="checkbox"
           class="form-control"
-          name="code"
-          id="code"
-          bind:value={current.code} />
-        {#if errors.code}<span class="validation">{errors.code}</span>{/if}
+          name="isQuery"
+          id="isQuery"
+          bind:value={current.isQuery}
+          bind:checked={current.isQuery} />
+        {#if errors.isQuery}<span class="validation">{errors.isQuery}</span>{/if}
+      </div>
+      <div class="form-group">
+        <label for="path">isMutation</label>
+        <input
+          type="checkbox"
+          class="form-control"
+          name="isMutation"
+          id="isMutation"
+          bind:value={current.isMutation}
+          bind:checked={current.isMutation} />
+        {#if errors.isMutation}<span class="validation">{errors.isMutation}</span>{/if}
+      </div>
+      <div class="form-group">
+        <label for="project">Project</label>
+        <Select
+          name="project"
+          items={projectsList}
+          bind:selectedValue={current.project} />
+        {#if errors.projectId}
+          <span class="validation">{errors.projectId}</span>
+        {/if}
       </div>
       {#if loadingModal}
         <div class="text-center">
@@ -226,7 +272,7 @@
 
 <Modal bind:isOpen={isUpdateModalOpen}>
   <div slot="header">
-    <h3>update</h3>
+    <h3>Update</h3>
   </div>
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitUpdate}>
@@ -241,14 +287,36 @@
         {#if errors.name}<span class="validation">{errors.name}</span>{/if}
       </div>
       <div class="form-group">
-        <label for="code">Code</label>
+        <label for="method">isQuery</label>
         <input
-          type="text"
+          type="checkbox"
           class="form-control"
-          name="code"
-          id="code"
-          bind:value={current.code} />
-        {#if errors.code}<span class="validation">{errors.code}</span>{/if}
+          name="isQuery"
+          id="isQuery"
+          bind:value={current.isQuery}
+          bind:checked={current.isQuery} />
+        {#if errors.isQuery}<span class="validation">{errors.isQuery}</span>{/if}
+      </div>
+      <div class="form-group">
+        <label for="path">isMutation</label>
+        <input
+          type="checkbox"
+          class="form-control"
+          name="isMutation"
+          id="isMutation"
+          bind:value={current.isMutation}
+          bind:checked={current.isMutation} />
+        {#if errors.isMutation}<span class="validation">{errors.isMutation}</span>{/if}
+      </div>
+      <div class="form-group">
+        <label for="project">Project</label>
+        <Select
+          name="project"
+          items={projectsList}
+          bind:selectedValue={current.project} />
+        {#if errors.projectId}
+          <span class="validation">{errors.projectId}</span>
+        {/if}
       </div>
       {#if loadingModal}
         <div class="text-center">

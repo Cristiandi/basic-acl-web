@@ -39,13 +39,14 @@ class PermissionService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { roleId, httpRouteId, allowed } = item;
+    const { roleId, httpRouteId, graphqlActionId, allowed } = item;
 
     const body = {
       companyUuid,
       roleId,
       httpRouteId,
-      allowed
+      allowed,
+      graphqlActionId
     };
 
     const response = await axios({
@@ -74,15 +75,14 @@ class PermissionService {
 
     const { accessToken, companyUuid } = dataForAuth;
 
-    const { id, roleId, httpRouteId, allowed } = item;
+    const { id, roleId, httpRouteId, graphqlActionId, allowed } = item;
 
     const body = {
       roleId,
       httpRouteId,
-      allowed
+      allowed,
+      graphqlActionId
     };
-
-    console.log(body, 'body');
 
     const response = await axios({
       url: `${this.baseUrl}permissions/${companyUuid}/${id}`,

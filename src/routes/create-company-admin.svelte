@@ -14,6 +14,7 @@
   let successful = true;
   let errors = {};
   let message = '';
+  let loading = false;
 
   onMount(async () => {
     if ($userFromStore) {
@@ -24,6 +25,7 @@
   async function handleSubmit(event) {
     errors = {};
     message = '';
+    loading = true;
 
     try {
       await createCompanyAdminSchema.validate(user, { abortEarly: false });
@@ -32,6 +34,7 @@
       errors = {
         ...extractErrors(error),
       };
+      loading = false;
       return;
     }
 
@@ -43,6 +46,8 @@
       successful = false;
       message = getFromObjectPathParsed(error, 'response.data.message');
     }
+
+    loading = false;
   }
 </script>
 
@@ -150,9 +155,17 @@
               <span class="validation">{errors.passwordConfirm}</span>
             {/if}
           </div>
+          {#if loading}
+            <div class="form-group text-right">
+              <div class="spinner-border text-dark" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+          {:else}
           <div class="form-group">
             <button class="btn btn-primary btn-block"> <span>Create</span> </button>
           </div>
+          {/if}
           {#if message}
             <div class="form-group">
               <div

@@ -3,6 +3,7 @@ import * as yup from 'yup';
 export const updateSchema = yup.object().shape({
   name: yup.string().required().min(5),
   countryCode: yup.string().required().min(2),
+  logoUrl: yup.string().url().optional(),
   serviceAccount: yup.object().shape({
     type: yup.string().required(),
     project_id: yup.string().required(),

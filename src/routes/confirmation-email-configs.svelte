@@ -7,12 +7,12 @@
   import Grid from '../components/Grid/Grid.svelte';
   import Modal from '../components/Modal/Modal.svelte';
 
-  import { projectService } from '../modules/projects/project.service';
+  import { confirmationEmailConfigService } from '../modules/confirmation-email-configs/confirmation-email-config.service';
 
   import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
 
-  import { createSchema } from '../modules/projects/schemas/create.schema';
-  import { updateSchema } from '../modules/projects/schemas/update.schema.js';
+  import { createSchema } from '../modules/confirmation-email-configs/schemas/create.schema';
+  import { updateSchema } from '../modules/confirmation-email-configs/schemas/update.schema.js';
 
   let items = [];
 
@@ -35,17 +35,17 @@
 
     const { action, row } = detail;
 
-    if (action === 'init-create-project') {
+    if (action === 'init-create-confirmation_email_config') {
       initCreate();
-    } else if (action === 'init-update-project') {
+    } else if (action === 'init-update-confirmation_email_config') {
       initUpdate(row);
-    } else if (action === 'init-delete-project') {
+    } else if (action === 'init-delete-confirmation_email_config') {
       initDelete(row);
     }
   }
 
   async function loadData() {
-    const data = await projectService.findAll();
+    const data = await confirmationEmailConfigService.findAll();
 
     return data;
   }
@@ -77,12 +77,13 @@
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      console.log(error);
       loadingModal = false;
       return;
     }
 
     try {
-      await projectService.create(current);
+      await confirmationEmailConfigService.create(current);
       items = await loadData();
       isCreateModalOpen = false;
       current = {};
@@ -107,7 +108,7 @@
     }
 
     try {
-      await projectService.update(current);
+      await confirmationEmailConfigService.update(current);
       items = await loadData();
       isUpdateModalOpen = false;
       current = {};
@@ -121,11 +122,10 @@
   async function handleSubmitDelete(event) {
     errors = {};
     message = '';
-
     loadingModal = true;
 
     try {
-      await projectService.remove(current);
+      await confirmationEmailConfigService.remove(current);
       items = await loadData();
       isDeteleModalOpen = false;
       current = {};
@@ -140,11 +140,8 @@
     if (!$userFromStore) {
       await goto('/');
     }
-
     loading = true;
-
     items = await loadData();
-
     loading = false;
   });
 </script>
@@ -156,7 +153,7 @@
 </style>
 
 <svelte:head>
-  <title>Projects</title>
+  <title>Confirmation email config</title>
 </svelte:head>
 
 {#if loading}
@@ -168,11 +165,11 @@
   </div>
 {:else}
   <Grid
-    title={'Projects'}
+    title={'Confirmation email config'}
     {columns}
     rows={items}
     limit={10}
-    actions={['init-create-project', 'init-update-project', 'init-delete-project']}
+    actions={['init-create-confirmation_email_config', 'init-update-confirmation_email_config', 'init-delete-confirmation_email_config']}
     on:message={handleMessage} />
 {/if}
 
@@ -183,24 +180,24 @@
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitCreate}>
       <div class="form-group">
-        <label for="name">Name</label>
+        <label for="subject">Subject</label>
         <input
           type="text"
           class="form-control"
-          name="name"
-          id="name"
-          bind:value={current.name} />
-        {#if errors.name}<span class="validation">{errors.name}</span>{/if}
+          name="subject"
+          id="subject"
+          bind:value={current.subject} />
+        {#if errors.subject}<span class="validation">{errors.subject}</span>{/if}
       </div>
       <div class="form-group">
-        <label for="code">Code</label>
+        <label for="redirectUrl">Redirect URL</label>
         <input
           type="text"
           class="form-control"
-          name="code"
-          id="code"
-          bind:value={current.code} />
-        {#if errors.code}<span class="validation">{errors.code}</span>{/if}
+          name="redirectUrl"
+          id="redirectUrl"
+          bind:value={current.redirectUrl} />
+        {#if errors.redirectUrl}<span class="validation">{errors.redirectUrl}</span>{/if}
       </div>
       {#if loadingModal}
         <div class="text-center">
@@ -226,29 +223,29 @@
 
 <Modal bind:isOpen={isUpdateModalOpen}>
   <div slot="header">
-    <h3>update</h3>
+    <h3>Update</h3>
   </div>
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitUpdate}>
       <div class="form-group">
-        <label for="name">Name</label>
+        <label for="subject">Subject</label>
         <input
           type="text"
           class="form-control"
-          name="name"
-          id="name"
-          bind:value={current.name} />
-        {#if errors.name}<span class="validation">{errors.name}</span>{/if}
+          name="subject"
+          id="subject"
+          bind:value={current.subject} />
+        {#if errors.subject}<span class="validation">{errors.subject}</span>{/if}
       </div>
       <div class="form-group">
-        <label for="code">Code</label>
+        <label for="redirectUrl">Redirect URL</label>
         <input
           type="text"
           class="form-control"
-          name="code"
-          id="code"
-          bind:value={current.code} />
-        {#if errors.code}<span class="validation">{errors.code}</span>{/if}
+          name="redirectUrl"
+          id="redirectUrl"
+          bind:value={current.redirectUrl} />
+        {#if errors.redirectUrl}<span class="validation">{errors.redirectUrl}</span>{/if}
       </div>
       {#if loadingModal}
         <div class="text-center">
@@ -259,7 +256,7 @@
       {:else}
         <div class="form-group">
           <button class="btn btn-primary btn-block">
-            <span>update</span>
+            <span>Update</span>
           </button>
         </div>
       {/if}

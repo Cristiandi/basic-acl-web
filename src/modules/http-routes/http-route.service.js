@@ -78,7 +78,6 @@ class HttpRouteService {
     const { id, name, method, path, projectId } = item;
 
     const body = {
-      companyUuid,
       name,
       method,
       path,

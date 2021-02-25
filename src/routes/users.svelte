@@ -23,6 +23,8 @@
   let current = {};
   let errors = {};
   let message = '';
+  let loading = false;
+  let loadingModal = false;
 
   let isCreateModalOpen = false;
   let isUpdateModalOpen = false;
@@ -54,7 +56,7 @@
 
   function initUpdate(row) {
     current = {
-      ...row
+      ...row,
     };
     console.log('current in updte', current);
     isUpdateModalOpen = true;
@@ -69,11 +71,13 @@
   async function handleSubmitCreate(event) {
     errors = {};
     message = '';
+    loadingModal = true;
 
     try {
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      loadingModal = false;
       return;
     }
 
@@ -85,16 +89,20 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, 'response.data.message');
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitUpdate(event) {
     errors = {};
     message = '';
+    loadingModal = true;
 
     try {
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      loadingModal = false;
       return;
     }
 
@@ -106,11 +114,14 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, 'response.data.message');
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitDelete(event) {
     errors = {};
     message = '';
+    loadingModal = true;
 
     try {
       await userService.remove(current);
@@ -120,14 +131,19 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, 'response.data.message');
     }
+
+    loadingModal = false;
   }
 
   onMount(async () => {
     if (!$userFromStore) {
       await goto('/');
     }
+    loading = true;
 
     items = await loadData();
+
+    loading = false;
   });
 </script>
 
@@ -137,13 +153,26 @@
   }
 </style>
 
-<Grid
-  title={'Users'}
-  {columns}
-  rows={items}
-  limit={10}
-  actions={['init-create-user', 'init-update-user', 'init-delete-user']}
-  on:message={handleMessage} />
+<svelte:head>
+  <title>Users</title>
+</svelte:head>
+
+{#if loading}
+  <div class="text-center">
+    <br />
+    <div class="spinner-border text-dark" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+{:else}
+  <Grid
+    title={'Users'}
+    {columns}
+    rows={items}
+    limit={10}
+    actions={['init-create-user', 'init-update-user', 'init-delete-user']}
+    on:message={handleMessage} />
+{/if}
 
 <Modal bind:isOpen={isCreateModalOpen}>
   <div slot="header">
@@ -195,9 +224,19 @@
           <span class="validation">{errors.passwordConfirm}</span>
         {/if}
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Create</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Create</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -257,9 +296,19 @@
           <span class="validation">{errors.passwordConfirm}</span>
         {/if}
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Update</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>update</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -278,9 +327,19 @@
       <div class="form-group">
         <h3>¿Do you want to delete?</h3>
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Delete</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Delete</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>

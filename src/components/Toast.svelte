@@ -44,6 +44,10 @@
     background: #007bff;
   }
 
+  .warning {
+    background: yellow;
+  }
+
   .error {
     background: #dc3545;
   }
@@ -65,6 +69,7 @@
       in:fly={{ delay: 0, duration: 300, x: 0, y: 50, opacity: 0.1, easing: backOut }}
       out:fade={{ duration: 500, opacity: 0 }}
       class:success={toast.type === 'success'}
+      class:warning={toast.type === 'warning'}
       class:error={toast.type === 'error'}
       >
       

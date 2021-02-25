@@ -23,6 +23,8 @@
   let current = {};
   let errors = {};
   let message = '';
+  let loading = false;
+  let loadingModal = false;
 
   let isCreateModalOpen = false;
   let isUpdateModalOpen = false;
@@ -69,12 +71,14 @@
   async function handleSubmitCreate(event) {
     errors = {};
     message = '';
+    loadingModal = true;
 
     try {
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
       console.log(error);
+      loadingModal = false;
       return;
     }
 
@@ -86,16 +90,20 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, 'response.data.message');
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitUpdate(event) {
     errors = {};
     message = '';
+    loadingModal = true;
 
     try {
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
+      loadingModal = false;
       return;
     }
 
@@ -107,11 +115,14 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, 'response.data.message');
     }
+
+    loadingModal = false;
   }
 
   async function handleSubmitDelete(event) {
     errors = {};
     message = '';
+    loadingModal = true;
 
     try {
       await roleService.remove(current);
@@ -121,14 +132,17 @@
     } catch (error) {
       message = getFromObjectPathParsed(error, 'response.data.message');
     }
+
+    loadingModal = false;
   }
 
   onMount(async () => {
     if (!$userFromStore) {
       await goto('/');
     }
-
+    loading = true;
     roles = await loadData();
+    loading = false;
   });
 </script>
 
@@ -138,13 +152,26 @@
   }
 </style>
 
-<Grid
-  title={'Roles'}
-  {columns}
-  rows={roles}
-  limit={10}
-  actions={['init-create-role', 'init-update-role', 'init-delete-role']}
-  on:message={handleMessage} />
+<svelte:head>
+  <title>Roles</title>
+</svelte:head>
+
+{#if loading}
+  <div class="text-center">
+    <br />
+    <div class="spinner-border text-dark" role="status">
+      <span class="sr-only">Loading...</span>
+    </div>
+  </div>
+{:else}
+  <Grid
+    title={'Roles'}
+    {columns}
+    rows={roles}
+    limit={10}
+    actions={['init-create-role', 'init-update-role', 'init-delete-role']}
+    on:message={handleMessage} />
+{/if}
 
 <div class="row">
   <div class="col-md-6">
@@ -174,11 +201,19 @@
               bind:value={current.code} />
             {#if errors.code}<span class="validation">{errors.code}</span>{/if}
           </div>
-          <div class="form-group">
-            <button class="btn btn-primary btn-block">
-              <span>Create</span>
-            </button>
-          </div>
+          {#if loadingModal}
+            <div class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+          {:else}
+            <div class="form-group">
+              <button class="btn btn-primary btn-block">
+                <span>Create</span>
+              </button>
+            </div>
+          {/if}
           {#if message}
             <div class="form-group">
               <div class="alert alert-danger" role="alert">{message}</div>
@@ -216,9 +251,19 @@
           bind:value={current.code} />
         {#if errors.code}<span class="validation">{errors.code}</span>{/if}
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>update</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>update</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
@@ -237,9 +282,19 @@
       <div class="form-group">
         <h3>¿Do you want to delete?</h3>
       </div>
-      <div class="form-group">
-        <button class="btn btn-primary btn-block"> <span>Delete</span> </button>
-      </div>
+      {#if loadingModal}
+        <div class="text-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <div class="form-group">
+          <button class="btn btn-primary btn-block">
+            <span>Delete</span>
+          </button>
+        </div>
+      {/if}
       {#if message}
         <div class="form-group">
           <div class="alert alert-danger" role="alert">{message}</div>
