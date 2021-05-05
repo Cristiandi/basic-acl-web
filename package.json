@@ -16,7 +16,7 @@
     "axios": "0.21.1",
     "bootstrap": "4.6.0",
     "compression": "1.7.4",
-    "dotenv": "8.2.0",
+    "dotenv": "8.6.0",
     "lodash": "4.17.21",
     "polka": "next",
     "sirv": "1.0.11",
