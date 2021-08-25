@@ -3,9 +3,12 @@ import {
 } from '../../common/store';
 
 import axios from 'axios';
+import { gql } from 'graphql-request';
 
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
+
+import { getClient } from '../../graphql';
 
 class UserService {
   constructor() {
@@ -254,6 +257,75 @@ class UserService {
 
     return {
       ...data,
+      message: 'pasword updated!'
+    };
+  }
+
+  async sendResetPasswordEmail(item = {}) {
+    const graphQLClient = await getClient();
+
+    const { companyUuid, email } = item;   
+
+    const mutation = gql`
+      mutation sendResetPasswordEmail (
+        $companyUid: String!
+        $email: String!
+      ) {
+        sendResetUserPasswordEmail (
+          sendResetUserPasswordEmailInput: {
+            companyUid: $companyUid
+            email: $email
+          }
+        ) {
+          message
+        }
+      }
+    `;
+
+    const variables = {
+      companyUid: companyUuid,
+      email
+    };
+
+    const data = await graphQLClient.request(mutation, variables);
+
+    return {
+      ...data.sendResetUserPasswordEmail,
+    };
+  }
+
+  async resetPassword(item = {}) {
+    const graphQLClient = await getClient();
+
+    const { code, password } = item;   
+
+    const mutation = gql`
+      mutation resetPassword (
+        $code: String!
+        $password: String!
+      ) {
+        resetUserPassword (
+          resetUserPasswordInput: {
+            code: $code
+            password: $password
+          }
+        ) {
+          url
+        }
+      }
+    `;
+
+    const variables = {
+      code,
+      password
+    };
+
+    const data = await graphQLClient.request(mutation, variables);
+
+    // console.log('resetPassword', data);
+
+    return {
+      ...data.resetUserPassword,
       message: 'pasword updated!'
     };
   }
