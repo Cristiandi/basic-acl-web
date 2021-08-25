@@ -1,7 +1,6 @@
 import * as yup from 'yup';
 
 export const changeForgottenPassword = yup.object().shape({
-  companyUuid: yup.string().required(),
   code: yup.string().required(),
   password: yup.string().required().min(5),
   confirmedPassword: yup

@@ -1,16 +1,12 @@
 <script context="module">
   export async function preload({ params, query }) {
-    const { companyUuid, code } = query;
+    const { code } = query;
 
-    if (!companyUuid) {
-      return this.error(400, 'companyUuid is required.');
-    }
     if (!code) {
       return this.error(400, 'code is required.');
     }
 
     return {
-      companyUuid,
       code,
     };
   }
@@ -35,7 +31,6 @@
     loading = true;
 
     try {
-      user.companyUuid = companyUuid;
       user.code = code;
       await changeForgottenPassword.validate(user, { abortEarly: false });
     } catch (error) {
@@ -47,10 +42,12 @@
     }
 
     try {
-      const result = await userService.changeForgottenPassword(user);
+      const result = await userService.resetPassword(user);
       message = result.message;
       loading = false;
       successful = true;
+
+      // console.log('redirecting to', result.url);
 
       setTimeout(async () => {
         await goto(result.url);  
@@ -63,7 +60,6 @@
     }
   }
 
-  export let companyUuid;
   export let code;
 </script>
 

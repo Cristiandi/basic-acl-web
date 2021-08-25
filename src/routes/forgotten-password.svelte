@@ -26,7 +26,7 @@
     }
 
     try {
-      const result = await userService.forgottenPassword(user);
+      const result = await userService.sendResetPasswordEmail(user);
       message = result.message;
       loading = false;
       successful = true;
