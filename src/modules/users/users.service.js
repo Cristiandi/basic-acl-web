@@ -130,28 +130,50 @@ class UserService {
   }
 
   async createCompanyAdmin(item = {}) {
-    const { companyUuid, email, password, phone } = item;
+    const { companyAccessKey, companyUid, email, password, phone } = item;
 
-    const body = {
-      companyUuid,
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });   
+
+    const mutation = gql`
+      mutation createSuperAdmin (
+          $companyUid: String!
+          $email: String!
+          $password: String!
+          $phone: String!
+      ) {
+          createSuperAdmin (
+              createSuperAdmiUserInput: {
+                  companyUid: $companyUid
+                  email: $email
+                  password: $password
+                  phone: $phone
+              }
+          ) {
+              id
+              authUid
+              email
+              phone
+              company {
+                  id
+              }
+          }
+      }
+    `;
+
+    const variables = {
+      companyUid,
       email,
       password,
-      phone
+      phone: `+57${phone}`
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}users/company-admin`,
-      method: 'post',
-      data: {
-        ...body,
-      }
-    });
+    const data = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
+    // console.log('resetPassword', data);
 
     return {
-      ...data,
-      message: 'your company admin user has been created, now you can login.'
+      ...data.createSuperAdmin,
+      message: 'your company super admin user has been created, now you can login.'
     };
   }
 
@@ -262,7 +284,7 @@ class UserService {
   }
 
   async sendResetPasswordEmail(item = {}) {
-    const graphQLClient = await getClient();
+    const graphQLClient = await getClient({});
 
     const { companyUuid, email } = item;   
 
@@ -295,7 +317,7 @@ class UserService {
   }
 
   async resetPassword(item = {}) {
-    const graphQLClient = await getClient();
+    const graphQLClient = await getClient({});
 
     const { code, password } = item;   
 
