@@ -1,6 +1,10 @@
 import axios from 'axios';
+import { gql } from 'graphql-request';
+
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
+
+import { getClient } from '../../graphql';
 
 class CompanyService {
   constructor() {
@@ -14,94 +18,131 @@ class CompanyService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyAccessKey, companyUid } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}companies/your-company/${companyUuid}`,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-    });
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const { data } = response;
+    const query = gql`
+    query getCompany (
+        $uid: String!
+    ) {
+        getCompany (
+            getOneCompanyInput: {
+                uid: $uid
+            }
+        ) {
+            id
+            name
+            firebaseAdminConfig
+            firebaseConfig
+            website
+        }
+    }
+    `;
 
-    return [data];
+    const variables = {
+      uid: companyUid
+    };
+
+    const data = await graphQLClient.request(query, variables);
+
+    const { getCompany } = data;
+
+    return [getCompany];
   }
 
   async createCompany(company = {}) {
-    const { name, serviceAccount, firebaseConfig, countryCode } = company;
+    const { name, firebaseAdminConfig, firebaseConfig } = company;
 
-    const body = {
+    const graphQLClient = await getClient({});
+
+    const mutation = gql`
+      mutation createCompany (
+          $name: String!,
+          $firebaseAdminConfig: JSONObject!,
+          $firebaseConfig: JSONObject!
+      ) {
+          createCompany (
+              createCompanyInput: {
+                  name: $name,
+                  firebaseAdminConfig: $firebaseAdminConfig,
+                  firebaseConfig: $firebaseConfig
+              }
+          ) {
+              id
+              uid
+              name
+              firebaseAdminConfig
+              firebaseConfig
+          }
+      }
+    `;
+
+    const variables = {
       name,
-      serviceAccount,
+      firebaseAdminConfig,
       firebaseConfig,
-      countryCode
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}companies`,
-      method: 'post',
-      data: {
-        ...body,
-      },
-    });
+    const data = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
+    const { createCompany } = data;
 
     return {
-      ...data,
-      message: `company created, the UUID is ${data.uuid} please save that value.`
+      ...createCompany,
+      message: 'company created, please create your company admin.'
     };
   }
 
-  async updateCompany(company) {
+  async updateCompany(company = {}) {
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const {
-      id,
-      name,
-      serviceAccount,
-      firebaseConfig,
-      countryCode,
-      confirmationEmailConfig,
-      forgottenPasswordConfig,
-      logoUrl
-    } = company;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const body = {
-      name,
-      serviceAccount,
-      firebaseConfig,
-      countryCode,
-      confirmationEmailConfig,
-      forgottenPasswordConfig,
-      logoUrl
+    const mutation = gql`
+      mutation updateCompany (
+          $uid: String!
+          $name: String
+          $website: String
+      ) {
+          updateCompany (
+              getOneCompanyInput: {
+                  uid: $uid
+              }
+              updateCompanyInput: {
+                  name: $name
+                  website: $website
+              }
+          ) {
+              id
+              name
+              website
+              accessKey
+              createdAt
+              updatedAt
+          }
+      }
+    `;
+
+    const variables = {
+      uid: companyUid,
+      name: company.name,
+      website: company.website,
     };
 
-    console.log(body, 'body');
+    const data = await graphQLClient.request(mutation, variables);
 
-    const response = await axios({
-      url: `${this.baseUrl}companies/${companyUuid}`,
-      method: 'patch',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body,
-      },
-    });
+    const { updateCompany } = data;
 
-    const { data } = response;
-
-    return data;
+    return {
+      ...updateCompany,
+    };
   }
 
   async removeCompany(id) {

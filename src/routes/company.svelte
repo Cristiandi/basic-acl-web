@@ -12,13 +12,13 @@
   import { companiesService } from '../modules/companies/companies.service.js';
   import { userService } from '../modules/users/users.service';
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getMessageFromGraphQLError } from '../common/utils.js';
 
   import { updateSchema } from '../modules/companies/schemas/update.schema.js';
 
   let companies = [];
 
-  const notShowInColumns = ['serviceAccount', 'firebaseConfig'];
+  const notShowInColumns = ['firebaseAdminConfig', 'firebaseConfig'];
   $: columns = companies.length
     ? Object.keys(companies[0]).filter((key) => !notShowInColumns.includes(key))
     : [];
@@ -51,12 +51,6 @@
   function initUpdate(row) {
     current = {
       ...row,
-      serviceAccountString: row.serviceAccount
-        ? JSON.stringify(row.serviceAccount)
-        : '',
-      firebaseConfigString: row.firebaseConfig
-        ? JSON.stringify(row.firebaseConfig)
-        : '',
     };
     console.log('current in updte', current);
     isUpdateModalOpen = true;
@@ -66,25 +60,6 @@
     errors = {};
     message = '';
     loadingModal = true;
-
-    try {
-      if (!current.serviceAccountString) {
-        throw new Error('serviceAccount is required.');
-      }
-
-      current.serviceAccount = JSON.parse(current.serviceAccountString);
-
-      if (!current.firebaseConfigString) {
-        throw new Error('firebaseConfig is required.');
-      }
-
-      current.firebaseConfig = JSON.parse(current.firebaseConfigString);
-    } catch (error) {
-      console.error('error', error);
-      message = error.message || 'something went wrong.';
-      loadingModal = false;
-      return;
-    }
 
     try {
       await updateSchema.validate(current, { abortEarly: false });
@@ -100,7 +75,7 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loadingModal = false;
@@ -198,76 +173,16 @@
         {#if errors.name}<span class="validation">{errors.name}</span>{/if}
       </div>
       <div class="form-group">
-        <label for="countryCode">Country code</label>
-        <input
-          type="text"
-          class="form-control"
-          name="countryCode"
-          id="countryCode"
-          bind:value={current.countryCode} />
-        {#if errors.countryCode}
-          <span class="validation">{errors.countryCode}</span>
-        {/if}
-      </div>
-      <div class="form-group">
-        <label class="form-check-label" for="confirmationEmailConfig">Confirmation email config</label>
-        <input
-          type="checkbox"
-          class="form-control"
-          name="confirmationEmailConfig"
-          id="confirmationEmailConfig"
-          bind:value={current.confirmationEmailConfig}
-          bind:checked={current.confirmationEmailConfig} />
-        {#if errors.confirmationEmailConfig}<span class="validation">{errors.confirmationEmailConfig}</span>{/if}
-      </div>
-      <div class="form-group">
-        <label class="form-check-label" for="confirmationEmailConfig">Forgotten password config</label>
-        <input
-          type="checkbox"
-          class="form-control"
-          name="confirmationEmailConfig"
-          id="forgottenPasswordConfig"
-          bind:value={current.forgottenPasswordConfig}
-          bind:checked={current.forgottenPasswordConfig} />
-        {#if errors.forgottenPasswordConfig}<span class="validation">{errors.forgottenPasswordConfig}</span>{/if}
-      </div>
-      <div class="form-group">
-        <label for="logoUrl">Company logo</label>
+        <label for="website">Company website</label>
         <textarea
           type="text"
           class="form-control"
-          name="logoUrl"
-          id="logoUrl"
+          name="website"
+          id="website"
           rows="3"
-          bind:value={current.logoUrl} />
-        {#if errors.logoUrl}
-          <span class="validation">{errors.logoUrl}</span>
-        {/if}
-      </div>
-      <div class="form-group">
-        <label for="serviceAccount">Service account</label>
-        <textarea
-          type="text"
-          class="form-control"
-          name="serviceAccount"
-          id="serviceAccount"
-          rows="5"
-          bind:value={current.serviceAccountString} />
-        {#if errors.serviceAccount}
-          <span class="validation">{errors.serviceAccount}</span>
-        {/if}
-      </div>
-      <div class="form-group">
-        <label for="firebaseConfig">Firebase config</label>
-        <textarea
-          type="text"
-          class="form-control"
-          name="firebaseConfig"
-          id="firebaseConfig"
-          rows="5"
-          bind:value={current.firebaseConfigString} />
-        {#if errors.firebaseConfig}
-          <span class="validation">{errors.firebaseConfig}</span>
+          bind:value={current.website} />
+        {#if errors.website}
+          <span class="validation">{errors.website}</span>
         {/if}
       </div>
       {#if loadingModal}

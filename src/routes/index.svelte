@@ -5,7 +5,7 @@
 
   import { userService } from '../modules/users/users.service.js';
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getMessageFromGraphQLError } from '../common/utils.js';
 
   import { loginSchema } from '../modules/users/schemas/login.schema.js';
 
@@ -40,7 +40,6 @@
       await userService.login({
         email: user.email,
         password: user.password,
-        companyUuid: user.companyUuid,
       });
 
       loading = false;
@@ -48,7 +47,7 @@
       goto('/dashboard');
     } catch (error) {
       console.error(error);
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
       loading = false;
     }
   }
@@ -105,18 +104,6 @@
       <div class="card card-container">
         <form name="form" on:submit|preventDefault={handleSubmit}>
           <h5 class="card-title">Login</h5>
-          <div class="form-group">
-            <input
-              type="text"
-              class="form-control"
-              name="companyUuid"
-              id="companyUuid"
-              placeholder="Company uuid"
-              bind:value={user.companyUuid} />
-            {#if errors.companyUuid}
-              <span class="validation">{errors.companyUuid}</span>
-            {/if}
-          </div>
           <div class="form-group">
             <input
               type="email"

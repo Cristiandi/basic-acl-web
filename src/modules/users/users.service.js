@@ -132,7 +132,7 @@ class UserService {
   async createCompanyAdmin(item = {}) {
     const { companyAccessKey, companyUid, email, password, phone } = item;
 
-    const graphQLClient = await getClient({ 'access-key': companyAccessKey });   
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
     const mutation = gql`
       mutation createSuperAdmin (
@@ -178,23 +178,51 @@ class UserService {
   }
 
   async login(item = {}) {
-    const respose = await axios({
-      url: `${this.baseUrl}users/login-admin`,
-      method: 'post',
-      data: {
-        ...item
-      }
-    });
+    const graphQLClient = await getClient({});
 
-    const { data } = respose;
+    const mutation = gql`
+    mutation loginSuperAdmin (
+        $email: String!
+        $password: String!
+    ) {
+        loginSuperAdmin (
+            loginSuperAdminInput: {
+                email: $email
+                password: $password
+            }
+        ) {
+            companyUid
+            accessKey
+            token
+            authTime
+            issuedAtTime
+            expirationTime
+        }
+    }
+    `;
+
+    const { email, password } = item;
+
+    const variables = {
+      email,
+      password,
+    };
+
+    const data = await graphQLClient.request(mutation, variables);
+
+    // console.log('resetPassword', data);
+
+    const { loginSuperAdmin } = data;
 
     if (process.browser) {
-      localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem('user', JSON.stringify(loginSuperAdmin));
     }
 
-    userFromStore.set(data);
+    userFromStore.set(loginSuperAdmin);
 
-    return data;
+    return {
+      ...loginSuperAdmin
+    };
   }
 
   logout () {
