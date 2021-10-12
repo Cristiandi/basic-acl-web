@@ -1,7 +1,10 @@
 import axios from 'axios';
+import { gql } from 'graphql-request';
 
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
+
+import { getClient } from '../../graphql';
 
 class RoleService {
   constructor() {
@@ -15,19 +18,47 @@ class RoleService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}roles/${companyUuid}`,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-    });
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const { data } = response;
+    const query = gql`
+      query getAllRoles (
+          $companyUid: String!
+          $limit: Int
+          $skip: Int
+          $q: String
+      ) {
+          getAllRoles (
+              getRolesInput: {
+                  companyUid: $companyUid
+                  limit: $limit
+                  skip: $skip
+                  q: $q
+              }
+          ) {
+              id
+              uid
+              code
+              name
+              description
+              createdAt
+              updatedAt
+          }
+      }
+    `;
 
-    return data;
+    const variables = {
+      companyUid,
+      limit: 100,
+      skip: 0,
+    };
+
+    const data = await graphQLClient.request(query, variables);
+
+    const { getAllRoles } = data;
+
+    return getAllRoles;
   }
 
   async create(item = {}) {
@@ -37,31 +68,51 @@ class RoleService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const { name, code } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const body = {
-      companyUuid,
+    const mutation = gql`
+      mutation createRole (
+          $companyUid: String!
+          $code: String!
+          $name: String!
+          $description: String
+      ) {
+          createRole (
+              createRoleInput: {
+                  companyUid: $companyUid
+                  code: $code
+                  name: $name
+                  description: $description
+              }
+          ) {
+              id
+              uid
+              code
+              name
+              description
+              company {
+                  id
+              }
+          }
+      }
+    `;
+
+    const { name, code, description } = item;
+
+    const variables = {
+      companyUid,
+      code,
       name,
-      code
+      description,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}roles`,
-      method: 'post',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const data = await graphQLClient.request(mutation, variables);
+    
+    const { createRole } = data;
 
-    const { data } = response;
-
-    return data;
+    return createRole;
   }
 
   async update(item = {}) {
@@ -71,31 +122,50 @@ class RoleService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyAccessKey } = dataForAuth;
 
-    const { id, code, name } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const body = {
-      companyUuid,
-      name,
-      code
+    const mutation = gql`
+      mutation updateRole (
+          $uid: String!
+          $code: String
+          $name: String
+          $description: String
+      ) {
+          updateRole (
+              getOneRoleInput: {
+                  uid:  $uid
+              }
+              updateRoleInput: {
+                  name: $name
+                  code: $code
+                  description: $description
+              }
+          ) {
+              id
+              code
+              name
+              description
+              company {
+                  id
+              }
+          }
+      }
+    `;
+
+    const variables = {
+      uid: item.uid,
+      code: item.code,
+      name: item.name,
+      description: item.description,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}roles/${companyUuid}/${id}`,
-      method: 'patch',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const data = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
+    const { updateRole } = data;
 
-    return data;
+    return updateRole;
   }
 
   async remove(item = {}) {
@@ -105,22 +175,39 @@ class RoleService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyAccessKey } = dataForAuth;
 
-    const { id } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const response = await axios({
-      url: `${this.baseUrl}roles/${companyUuid}/${id}`,
-      method: 'delete',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
+    const mutation = gql`
+      mutation deleteRole (
+          $uid: String!
+      ) {
+          deleteRole (
+              getOneRoleInput: {
+                  uid: $uid
+              }
+          ) {
+              id
+              code
+              name
+              description
+              company {
+                  id
+              }
+          }
       }
-    });
+    `;
 
-    const { data } = response;
+    const variables = {
+      uid: item.uid,
+    };
 
-    return data;
+    const data = await graphQLClient.request(mutation, variables);
+
+    const { deleteRole } = data;
+
+    return deleteRole;
   }
 }
 

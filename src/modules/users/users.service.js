@@ -22,32 +22,57 @@ class UserService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const { email, password, phone } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const body = {
-      companyUuid,
+    const mutation = gql`
+      mutation createUser (
+          $companyUid: String!
+          $authUid: String
+          $email: String
+          $phone: String
+          $password: String
+          $roleCode: String
+          $sendEmail: Boolean
+          $emailTemplateParams: JSONObject
+      ) {
+          createUser (
+              createUserInput: {
+                  companyUid: $companyUid
+                  authUid: $authUid
+                  email: $email
+                  phone: $phone
+                  password: $password
+                  roleCode: $roleCode
+                  sendEmail: $sendEmail
+                  emailTemplateParams: $emailTemplateParams
+              }
+          ) {
+              id
+              authUid
+              email
+              phone
+              createdAt
+              updatedAt
+          }
+      }
+    `;
+
+    const { email, phone, password } = item;
+
+    const variables = {
+      companyUid,
       email,
-      phone,
-      password
+      phone: `+57${phone}`,
+      password,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}users`,
-      method: 'post',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const data = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
+    const { createUser } = data;
 
-    return data;
+    return createUser;
   }
 
   async findAll() {
@@ -57,53 +82,44 @@ class UserService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}users/${companyUuid}`,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-    });
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const { data } = response;
+    const query = gql`
+      query getAllUsers (
+          $companyUid: String!
+          $limit: Int
+          $skip: Int
+          $q: String
+      ) {
+          getAllUsers (
+              getAllUsersInput: {
+                  companyUid: $companyUid
+                  limit: $limit
+                  skip: $skip
+                  q: $q
+              }
+          ) {
+              id
+              authUid
+              email
+              phone
+          }
+      }
+    `;
 
-    return data;
-  }
-
-  async update(item = {}) {
-    const dataForAuth = getDataForAuth();
-
-    if (!dataForAuth) {
-      throw new Error('can not get data for auth.');
-    }
-
-    const { accessToken, companyUuid } = dataForAuth;
-
-    const { email, password, phone } = item;
-
-    const body = {
-      email,
-      phone,
-      password
+    const variables = {
+      companyUid,
+      limit: 100,
+      skip: 0,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}users/${companyUuid}/${item.id}`,
-      method: 'patch',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const data = await graphQLClient.request(query, variables);
 
-    const { data } = response;
+    const { getAllUsers } = data;
 
-    return data;
+    return getAllUsers;
   }
 
   async remove(item = {}) {
@@ -113,20 +129,36 @@ class UserService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyAccessKey } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}users/${companyUuid}/${item.id}`,
-      method: 'delete',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
+
+    const mutation = gql`
+      mutation deleteUser (
+          $authUid: String!
+      ) {
+          deleteUser (
+              getOneUserInput: {
+                  authUid: $authUid
+              }
+          ) {
+              id
+              authUid
+              email
+              phone
+          }
       }
-    });
+    `;
 
-    const { data } = response;
+    const variables = {
+      authUid: item.authUid,
+    };
 
-    return data;
+    const data = await graphQLClient.request(mutation, variables);
+
+    const { deleteUser } = data;
+
+    return deleteUser;
   }
 
   async createCompanyAdmin(item = {}) {

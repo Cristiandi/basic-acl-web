@@ -90,7 +90,7 @@
 
       window.pushToast(localMessage, 'success');
     } catch (error) {
-      localMessage = getFromObjectPathParsed(error, 'response.data.message');
+      localMessage = getMessageFromGraphQLError(error);
 
       window.pushToast(localMessage, 'error');
     }
