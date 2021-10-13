@@ -1,34 +1,33 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
+  import { user as userFromStore } from "../common/store.js";
 
-  import Select from 'svelte-select';
-  import { onMount } from 'svelte';
-  import { goto } from '@sapper/app';
+  import Select from "svelte-select";
+  import { onMount } from "svelte";
+  import { goto } from "@sapper/app";
 
-  import Grid from '../components/Grid/Grid.svelte';
-  import Modal from '../components/Modal/Modal.svelte';
+  import Grid from "../components/Grid/Grid.svelte";
+  import Modal from "../components/Modal/Modal.svelte";
 
-  import { assignedRoleService } from '../modules/assigned-roles/assigned-role.service';
-  import { roleService } from '../modules/roles/role.service';
-  import { userService } from '../modules/users/users.service';
-  import { apiKeyService } from '../modules/api-keys/api-key.service';
+  import { assignedRoleService } from "../modules/assigned-roles/assigned-role.service";
+  import { roleService } from "../modules/roles/role.service";
+  import { userService } from "../modules/users/users.service";
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getMessageFromGraphQLError } from "../common/utils.js";
 
-  import { createSchema } from '../modules/assigned-roles/schemas/create.schema';
+  import { createSchema } from "../modules/assigned-roles/schemas/create.schema";
 
   let items = [];
   let rolesList = [];
   let usersList = [];
-  let apiKeysList = [];
 
+  const notShowInColumns = ["roleId", "roleUid", "userId", "userAuthUid"];
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== '')
+    ? Object.keys(items[0]).filter((key) => !notShowInColumns.includes(key))
     : [];
 
   let current = {};
   let errors = {};
-  let message = '';
+  let message = "";
   let loading = false;
   let loadingModal = false;
 
@@ -40,9 +39,9 @@
 
     const { action, row } = detail;
 
-    if (action === 'init-create-assigned_role') {
+    if (action === "init-create-assigned_role") {
       initCreate();
-    } else if (action === 'init-delete-assigned_role') {
+    } else if (action === "init-delete-assigned_role") {
       initDelete(row);
     }
   }
@@ -57,7 +56,7 @@
     const data = await roleService.findAll();
 
     return data.map((item) => ({
-      value: item.id,
+      value: item.uid,
       label: `${item.code} - ${item.name}`,
     }));
   }
@@ -65,13 +64,10 @@
   async function loadUsersList() {
     const data = await userService.findAll();
 
-    return data.map((item) => ({ value: item.id, label: item.email }));
-  }
-
-  async function loadApiKeysList() {
-    const data = await apiKeyService.findAll();
-
-    return data.map((item) => ({ value: item.id, label: item.value }));
+    return data.map((item) => ({
+      value: item.authUid,
+      label: item.email || item.phone,
+    }));
   }
 
   function initCreate() {
@@ -80,19 +76,28 @@
 
   function initDelete(row) {
     current = row;
-    console.log('current in delete', current);
+    console.log("current in delete", current);
     isDeteleModalOpen = true;
+  }
+
+  function handleRoleSelect(event) {
+    current.role = event.detail;
+  }
+
+  function handleUserSelect(event) {
+    current.user = event.detail;
   }
 
   async function handleSubmitCreate(event) {
     errors = {};
-    message = '';
+    message = "";
     loadingModal = true;
 
+    console.log("current", current);
+
     try {
-      current.roleId = current.role ? current.role.value : current.role;
-      current.userId = current.user ? current.user.value : current.user;
-      current.apiKeyId = current.apiKey ? current.apiKey.value : current.apiKey;
+      current.roleUid = current.role ? current.role.value : current.role;
+      current.userUid = current.user ? current.user.value : current.user;
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
       errors = { ...extractErrors(error) };
@@ -106,7 +111,7 @@
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loadingModal = false;
@@ -114,7 +119,7 @@
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = '';
+    message = "";
     loadingModal = true;
 
     try {
@@ -123,7 +128,7 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loadingModal = false;
@@ -131,7 +136,7 @@
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto('/');
+      await goto("/");
     }
 
     loading = true;
@@ -139,17 +144,10 @@
     items = await loadData();
     rolesList = await loadRolesList();
     usersList = await loadUsersList();
-    apiKeysList = await loadApiKeysList();
 
     loading = false;
   });
 </script>
-
-<style>
-  .validation {
-    color: red;
-  }
-</style>
 
 <svelte:head>
   <title>Assigned roles</title>
@@ -164,12 +162,13 @@
   </div>
 {:else}
   <Grid
-    title={'Assigned roles'}
+    title={"Assigned roles"}
     {columns}
     rows={items}
     limit={10}
-    actions={['init-create-assigned_role', 'init-delete-assigned_role']}
-    on:message={handleMessage} />
+    actions={["init-create-assigned_role", "init-delete-assigned_role"]}
+    on:message={handleMessage}
+  />
 {/if}
 
 <Modal bind:isOpen={isCreateModalOpen}>
@@ -181,28 +180,18 @@
       <div class="form-group">
         <label for="role">Role</label>
         <Select
-          name="role"
           items={rolesList}
-          bind:selectedValue={current.role} />
-        {#if errors.roleId}<span class="validation">{errors.roleId}</span>{/if}
+          on:select={handleRoleSelect}
+        />
+        {#if errors.roleUid}<span class="validation">{errors.roleUid}</span>{/if}
       </div>
       <div class="form-group">
         <label for="user">User</label>
         <Select
-          name="user"
           items={usersList}
-          bind:selectedValue={current.user} />
-        {#if errors.userId}<span class="validation">{errors.userId}</span>{/if}
-      </div>
-      <div class="form-group">
-        <label for="apiKey">Api key</label>
-        <Select
-          name="apiKey"
-          items={apiKeysList}
-          bind:selectedValue={current.apiKey} />
-        {#if errors.apiKeyId}
-          <span class="validation">{errors.apiKeyId}</span>
-        {/if}
+          on:select={handleUserSelect}
+        />
+        {#if errors.userUid}<span class="validation">{errors.userUid}</span>{/if}
       </div>
       {#if loadingModal}
         <div class="text-center">
@@ -256,3 +245,9 @@
     </form>
   </div>
 </Modal>
+
+<style>
+  .validation {
+    color: red;
+  }
+</style>
