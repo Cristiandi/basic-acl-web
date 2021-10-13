@@ -29,14 +29,22 @@
     if (filterKey) {
       filteredRows = rows.filter((row) => {
         return Object.keys(row).some((key) => {
+          /*
+          console.log('---');
+          console.log('filterKey', filterKey);
+          console.log('key', key);
+          console.log('row[key]', row[key]);
+          console.log('---');
+          */
           return String(row[key]).toLowerCase().indexOf(filterKey) > -1;
         });
       });
     }
 
     if (sortKey) {
-      const valueToSort = sortKey.value;
-      filteredRows = rows.slice().sort((a, b) => {
+      // const valueToSort = sortKey.value;
+      const valueToSort = sortKey;
+      filteredRows = filteredRows.slice().sort((a, b) => {
         a = a[valueToSort];
         b = b[valueToSort];
         return (a === b ? 0 : a > b ? 1 : -1) * 1;
@@ -92,6 +100,12 @@
       row: { ...row },
     });
   }
+
+  function handleSelect(event) {
+    sortKey = event.detail.value;
+    console.log('sortKey', sortKey);
+  }
+
 </script>
 
 <div class="container">
@@ -112,7 +126,7 @@
     </div>
     <div class="col-sm-12 col-md-4">
       <div class="form-group">
-        <Select items={columns} bind:selectedValue={sortKey} />
+        <Select items={columns} on:select={handleSelect} />
       </div>
     </div>
     {#if createAction}

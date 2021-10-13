@@ -1,8 +1,9 @@
-import axios from 'axios';
+import { gql } from 'graphql-request';
 
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
 
+import { getClient } from '../../graphql';
 class ApiKeyService {
   constructor() {
     this.baseUrl = API_URL;
@@ -15,19 +16,44 @@ class ApiKeyService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}api-keys/${companyUuid}`,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-    });
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const { data } = response;
+    const query = gql`
+      query getAllApiKeys (
+          $companyUid: String!
+          $limit: Int
+          $skip: Int
+          $q: String
+      ) {
+          getAllApiKeys (
+              getAllApiKeysInput: {
+                  companyUid: $companyUid
+                  limit: $limit
+                  skip: $skip
+                  q: $q
+              }
+          ) {
+              id
+              uid
+              alias
+              value
+              createdAt
+              updatedAt
+          }
+      }
+    `;
+    
+    const variables = {
+      companyUid,
+      limit: 100,
+      skip: 0,
+    };
 
-    return data;
+    const { getAllApiKeys } = await graphQLClient.request(query, variables);
+
+    return getAllApiKeys;
   }
 
   async create(item = {}) {
@@ -37,62 +63,40 @@ class ApiKeyService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const { prefix } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const body = {
-      companyUuid,
-      prefix
+    const mutation = gql`
+      mutation createApiKey (
+          $companyUid: String!
+          $alias: String
+      ) {
+          createApiKey (
+              createApiKeyInput: {
+                  companyUid: $companyUid
+                  alias: $alias
+              }
+          ) {
+              id
+              uid
+              value
+              alias
+              company {
+                  id
+              }
+          }
+      }
+    `;
+    
+    const variables = {
+      companyUid,
+      alias: item.alias,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}api-keys`,
-      method: 'post',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const { createApiKey } = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
-
-    return data;
-  }
-
-  async update(item = {}) {
-    const dataForAuth = getDataForAuth();
-
-    if (!dataForAuth) {
-      throw new Error('can not get data for auth.');
-    }
-
-    const { accessToken, companyUuid } = dataForAuth;
-
-    const { id, enable } = item;
-
-    const body = {
-      enable
-    };
-
-    const response = await axios({
-      url: `${this.baseUrl}api-keys/${companyUuid}/${id}`,
-      method: 'patch',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
-
-    const { data } = response;
-
-    return data;
+    return createApiKey;
   }
 
   async remove(item = {}) {
@@ -102,22 +106,36 @@ class ApiKeyService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyAccessKey } = dataForAuth;
 
-    const { id } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const response = await axios({
-      url: `${this.baseUrl}api-keys/${companyUuid}/${id}`,
-      method: 'delete',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
+    const query = gql`
+      mutation deleteApiKey (
+          $uid: String!
+      ) {
+          deleteApiKey (
+              getOneApiKeyInput: {
+                  uid: $uid
+              }
+          ) {
+              id
+              uid
+              alias
+              value
+              createdAt
+              updatedAt
+          }
       }
-    });
+    `;
 
-    const { data } = response;
+    const variables = {
+      uid: item.uid,
+    };
 
-    return data;
+    const { deleteApiKey } = await graphQLClient.request(query, variables);
+
+    return deleteApiKey;
   }
 }
 

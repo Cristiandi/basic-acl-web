@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 import { gql } from 'graphql-request';
 
 import { getDataForAuth } from '../../common/utils';

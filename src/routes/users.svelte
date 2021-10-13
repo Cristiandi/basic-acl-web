@@ -16,8 +16,9 @@
 
   let items = [];
 
+  const notShowInColumns = ['authUid'];
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== '')
+    ? Object.keys(items[0]).filter((key) => !notShowInColumns.includes(key))
     : [];
 
   let current = {};
