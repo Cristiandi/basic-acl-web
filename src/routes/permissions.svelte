@@ -10,21 +10,20 @@
 
   import { permissionService } from '../modules/permissions/permission.service';
   import { roleService } from '../modules/roles/role.service';
-  import { httpRouteService } from '../modules/http-routes/http-route.service';
-  import { graphqlActionService } from '../modules/graphql-actions/graphql-action.service';
+  import { apiKeyService } from '../modules/api-keys/api-key.service';
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getMessageFromGraphQLError } from '../common/utils.js';
 
   import { createSchema } from '../modules/permissions/schemas/create.schema';
   import { updateSchema } from '../modules/permissions/schemas/update.schema.js';
 
   let items = [];
   let rolesList = [];
-  let httpRoutesList = [];
-  let graphqlActionsList = [];
+  let apiKeyList = [];
 
+  const notShowInColumns = ["roleId", "roleUid", "apiKeyId", "apiKeyUid"];
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== '')
+    ? Object.keys(items[0]).filter((key) => !notShowInColumns.includes(key))
     : [];
 
   let current = {};
@@ -60,19 +59,13 @@
   async function loadRolesList() {
     const data = await roleService.findAll();
 
-    return data.map((item) => ({ value: item.id, label: item.name }));
+    return data.map((item) => ({ value: item.uid, label: `${item.code} - ${item.name}` }));
   }
 
-  async function loadHttpRoutesList() {
-    const data = await httpRouteService.findAll();
+  async function loadApiKeyList() {
+    const data = await apiKeyService.findAll();
 
-    return data.map((item) => ({ value: item.id, label: item.name }));
-  }
-
-  async function loadGraphqlActionsList() {
-    const data = await graphqlActionService.findAll();
-
-    return data.map((item) => ({ value: item.id, label: item.name }));
+    return data.map((item) => ({ value: item.uid, label: item.alias }));
   }
 
   function initCreate() {
@@ -88,6 +81,7 @@
       },
     };
 
+    /*
     if (row.httpRouteId) {
       current = {
         ...current,
@@ -107,6 +101,7 @@
         },
       };
     }
+    */
     
     console.log('current in updte', JSON.stringify(current));
     isUpdateModalOpen = true;
@@ -118,22 +113,24 @@
     isDeteleModalOpen = true;
   }
 
+  function handleRoleSelect(event) {
+    current.role = event.detail;
+  }
+
+  function handleApiKeySelect(event) {
+    current.apiKey = event.detail;
+  }
+
   async function handleSubmitCreate(event) {
+    console.log('current', current);
     errors = {};
     message = '';
 
     loadingModal = true;
 
     try {
-      current.roleId = current.role ? current.role.value : current.role;
-
-      current.httpRouteId = current.httpRoute
-        ? current.httpRoute.value
-        : current.httpRoute;
-
-      current.graphqlActionId = current.graphqlAction
-        ? current.graphqlAction.value
-        : current.graphqlAction;
+      current.roleUid = current.role ? current.role.value : current.role;
+      current.apiKeyUid = current.apiKey ? current.apiKey.value : current.apiKey;
 
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
@@ -149,7 +146,7 @@
       isCreateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loadingModal = false;
@@ -162,14 +159,6 @@
 
     try {
       current.roleId = current.role ? current.role.value : current.role;
-
-      current.httpRouteId = current.httpRoute
-        ? current.httpRoute.value
-        : current.httpRoute;
-
-      current.graphqlActionId = current.graphqlAction
-        ? current.graphqlAction.value
-        : current.graphqlAction;
 
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
@@ -216,8 +205,7 @@
 
     items = await loadData();
     rolesList = await loadRolesList();
-    httpRoutesList = await loadHttpRoutesList();
-    graphqlActionsList = await loadGraphqlActionsList();
+    apiKeyList = await loadApiKeyList();
 
     loading = false;
   });
@@ -256,41 +244,27 @@
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitCreate}>
       <div class="form-group">
-        <label class="form-check-label" for="allowed">Allowed</label>
+        <label for="name">Name</label>
         <input
-          type="checkbox"
+          type="text"
           class="form-control"
-          name="allowed"
-          id="allowed"
-          bind:value={current.allowed}
-          bind:checked={current.allowed}
-        />
-        {#if errors.allowed}
-          <span class="validation">{errors.allowed}</span>
-        {/if}
+          name="name"
+          id="name"
+          bind:value={current.name} />
+        {#if errors.name}<span class="validation">{errors.name}</span>{/if}
       </div>
       <div class="form-group">
         <label for="role">Role</label>
-        <Select items={rolesList} bind:selectedValue={current.role} />
-        {#if errors.roleId}
-          <span class="validation">{errors.projectId}</span>
+        <Select items={rolesList} on:select={handleRoleSelect} />
+        {#if errors.roleUid}
+          <span class="validation">{errors.roleUid}</span>
         {/if}
       </div>
       <div class="form-group">
-        <label for="httpRoute">Http route</label>
-        <Select items={httpRoutesList} bind:selectedValue={current.httpRoute} />
-        {#if errors.httpRouteId}
-          <span class="validation">{errors.httpRouteId}</span>
-        {/if}
-      </div>
-      <div class="form-group">
-        <label for="graphqlAction">Graphql Action</label>
-        <Select
-          items={graphqlActionsList}
-          bind:selectedValue={current.graphqlAction}
-        />
-        {#if errors.graphqlActionId}
-          <span class="validation">{errors.graphqlActionId}</span>
+        <label for="role">Api key</label>
+        <Select items={apiKeyList} on:select={handleApiKeySelect} />
+        {#if errors.apiKeyUid}
+          <span class="validation">{errors.apiKeyUid}</span>
         {/if}
       </div>
       {#if loadingModal}
@@ -340,23 +314,6 @@
         <Select items={rolesList} bind:selectedValue={current.role} />
         {#if errors.roleId}
           <span class="validation">{errors.projectId}</span>
-        {/if}
-      </div>
-      <div class="form-group">
-        <label for="role">Http route</label>
-        <Select items={httpRoutesList} bind:selectedValue={current.httpRoute} />
-        {#if errors.httpRouteId}
-          <span class="validation">{errors.httpRouteId}</span>
-        {/if}
-      </div>
-      <div class="form-group">
-        <label for="graphqlAction">Graphql Action</label>
-        <Select
-          items={graphqlActionsList}
-          bind:selectedValue={current.graphqlAction}
-        />
-        {#if errors.graphqlActionId}
-          <span class="validation">{errors.graphqlActionId}</span>
         {/if}
       </div>
       {#if loadingModal}

@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+import { gql } from 'graphql-request';
+
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
+
+import { getClient } from '../../graphql';
 
 class PermissionService {
   constructor() {
@@ -15,19 +19,73 @@ class PermissionService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}permissions/${companyUuid}`,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
+
+    const query = gql`
+      query getAllPermissions (
+          $companyUid: String!
+          $limit: Int
+          $skip: Int
+          $q: String
+      ) {
+          getAllPermissions (
+              getPermissionsInput: {
+                  companyUid: $companyUid
+                  limit: $limit
+                  skip: $skip
+                  q: $q
+              }
+          ) {
+              id
+              name
+              allowed
+              role {
+                  id
+                  uid
+                  code
+                  name
+              }
+              apiKey {
+                  id
+                  uid
+                  alias
+              }
+          }
+      }
+    `;
+
+    const variables = {
+      companyUid,
+      limit: 1000,
+      skip: 0,
+    };
+
+    const { getAllPermissions } = await graphQLClient.request(query, variables);
+
+    const newGetAllPermissions = getAllPermissions.map((item) => {
+      if (item.role) {
+        item.roleId = item.role.id;
+        item.roleUid = item.role.uid;
+        item.roleCode = item.role.code;
+        item.roleName = item.role.name;
+      }
+
+      delete item.role;
+
+      if (item.apiKey) {
+        item.apiKeyId = item.apiKey.id;
+        item.apiKeyUid = item.apiKey.uid;
+        item.apiKeyAlias = item.apiKey.alias;
+      }
+
+      delete item.apiKey;
+
+      return item;
     });
 
-    const { data } = response;
-
-    return data;
+    return newGetAllPermissions;
   }
 
   async create(item = {}) {
@@ -37,33 +95,41 @@ class PermissionService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const { roleId, httpRouteId, graphqlActionId, allowed } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const body = {
-      companyUuid,
-      roleId,
-      httpRouteId,
-      allowed,
-      graphqlActionId
+    const mutation = gql`
+      mutation createPermission (
+          $roleUid: String
+          $apiKeyUid: String
+          $name:String!   
+      ) {
+          createPermission (
+              createPermissionInput: {
+                  name: $name
+                  roleUid: $roleUid
+                  apiKeyUid: $apiKeyUid
+              }
+          ) {
+              id
+              name
+              allowed
+              createdAt
+              updatedAt
+          }
+      }
+    `;
+
+    const variables = {
+      name: item.name,
+      roleUid: item.roleUid,
+      apiKeyUid: item.apiKeyUid,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}permissions`,
-      method: 'post',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const { createPermission } = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
-
-    return data;
+    return createPermission;
   }
 
   async update(item = {}) {

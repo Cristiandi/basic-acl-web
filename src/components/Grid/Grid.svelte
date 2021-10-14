@@ -36,7 +36,7 @@
           console.log('row[key]', row[key]);
           console.log('---');
           */
-          return String(row[key]).toLowerCase().indexOf(filterKey) > -1;
+          return String(row[key]).toLowerCase().indexOf(filterKey.toLowerCase()) > -1;
         });
       });
     }
@@ -106,6 +106,10 @@
     console.log('sortKey', sortKey);
   }
 
+  function handleSelectClear(event) {
+    sortKey = undefined;
+  }
+
 </script>
 
 <div class="container">
@@ -126,7 +130,7 @@
     </div>
     <div class="col-sm-12 col-md-4">
       <div class="form-group">
-        <Select items={columns} on:select={handleSelect} />
+        <Select items={columns} on:select={handleSelect} on:clear={handleSelectClear} />
       </div>
     </div>
     {#if createAction}
