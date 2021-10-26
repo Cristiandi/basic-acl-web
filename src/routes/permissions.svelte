@@ -1,34 +1,43 @@
 <script>
-  import { user as userFromStore } from '../common/store.js';
+  import { user as userFromStore } from "../common/store.js";
 
-  import Select from 'svelte-select';
-  import { onMount } from 'svelte';
-  import { goto } from '@sapper/app';
+  import Select from "svelte-select";
+  import { onMount } from "svelte";
+  import { goto } from "@sapper/app";
 
-  import Grid from '../components/Grid/Grid.svelte';
-  import Modal from '../components/Modal/Modal.svelte';
+  import Grid from "../components/Grid/Grid.svelte";
+  import Modal from "../components/Modal/Modal.svelte";
 
-  import { permissionService } from '../modules/permissions/permission.service';
-  import { roleService } from '../modules/roles/role.service';
-  import { apiKeyService } from '../modules/api-keys/api-key.service';
+  import { permissionService } from "../modules/permissions/permission.service";
+  import { roleService } from "../modules/roles/role.service";
+  import { apiKeyService } from "../modules/api-keys/api-key.service";
 
-  import { extractErrors, getMessageFromGraphQLError } from '../common/utils.js';
+  import {
+    extractErrors,
+    getMessageFromGraphQLError,
+  } from "../common/utils.js";
 
-  import { createSchema } from '../modules/permissions/schemas/create.schema';
-  import { updateSchema } from '../modules/permissions/schemas/update.schema.js';
+  import { createSchema } from "../modules/permissions/schemas/create.schema";
+  import { updateSchema } from "../modules/permissions/schemas/update.schema.js";
 
   let items = [];
   let rolesList = [];
   let apiKeyList = [];
 
-  const notShowInColumns = ["roleId", "roleUid", "apiKeyId", "apiKeyUid"];
+  const notShowInColumns = [
+    "uid",
+    "roleId",
+    "roleUid",
+    "apiKeyId",
+    "apiKeyUid",
+  ];
   $: columns = items.length
     ? Object.keys(items[0]).filter((key) => !notShowInColumns.includes(key))
     : [];
 
   let current = {};
   let errors = {};
-  let message = '';
+  let message = "";
   let loading = false;
   let loadingModal = false;
 
@@ -41,11 +50,11 @@
 
     const { action, row } = detail;
 
-    if (action === 'init-create-permission') {
+    if (action === "init-create-permission") {
       initCreate();
-    } else if (action === 'init-update-permission') {
+    } else if (action === "init-update-permission") {
       initUpdate(row);
-    } else if (action === 'init-delete-permission') {
+    } else if (action === "init-delete-permission") {
       initDelete(row);
     }
   }
@@ -59,7 +68,10 @@
   async function loadRolesList() {
     const data = await roleService.findAll();
 
-    return data.map((item) => ({ value: item.uid, label: `${item.code} - ${item.name}` }));
+    return data.map((item) => ({
+      value: item.uid,
+      label: `${item.code} - ${item.name}`,
+    }));
   }
 
   async function loadApiKeyList() {
@@ -73,43 +85,33 @@
   }
 
   function initUpdate(row) {
-    current = {
-      ...row,
-      role: {
-        value: row.roleId,
-        label: row.roleName,
-      },
-    };
-
-    /*
-    if (row.httpRouteId) {
+    if (row.roleId) {
       current = {
-        ...current,
-        httpRoute: {
-          value: row.httpRouteId || undefined,
-          label: row.httpRouteName || undefined,
+        ...row,
+        role: {
+          value: row.roleUid,
+          label: `${row.roleCode} - ${row.roleName}`,
         },
       };
     }
 
-    if (row.graphqlActionId) {
+    if (row.apiKeyId) {
       current = {
-        ...current,
-        graphqlAction: {
-          value: row.graphqlActionId,
-          label: row.graphqlActionName,
+        ...row,
+        apiKey: {
+          value: row.apiKeyUid,
+          label: row.apiKeyAlias,
         },
       };
     }
-    */
-    
-    console.log('current in updte', JSON.stringify(current));
+
+    console.log("current in updte", JSON.stringify(current));
     isUpdateModalOpen = true;
   }
 
   function initDelete(row) {
     current = row;
-    console.log('current in delete', current);
+    console.log("current in delete", current);
     isDeteleModalOpen = true;
   }
 
@@ -122,15 +124,16 @@
   }
 
   async function handleSubmitCreate(event) {
-    console.log('current', current);
     errors = {};
-    message = '';
+    message = "";
 
     loadingModal = true;
 
     try {
       current.roleUid = current.role ? current.role.value : current.role;
-      current.apiKeyUid = current.apiKey ? current.apiKey.value : current.apiKey;
+      current.apiKeyUid = current.apiKey
+        ? current.apiKey.value
+        : current.apiKey;
 
       await createSchema.validate(current, { abortEarly: false });
     } catch (error) {
@@ -154,11 +157,14 @@
 
   async function handleSubmitUpdate(event) {
     errors = {};
-    message = '';
+    message = "";
     loadingModal = true;
 
     try {
-      current.roleId = current.role ? current.role.value : current.role;
+      current.roleUid = current.role ? current.role.value : undefined;
+      current.apiKeyUid = current.apiKey
+        ? current.apiKey.value
+        : undefined;
 
       await updateSchema.validate(current, { abortEarly: false });
     } catch (error) {
@@ -173,7 +179,7 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loadingModal = false;
@@ -181,7 +187,7 @@
 
   async function handleSubmitDelete(event) {
     errors = {};
-    message = '';
+    message = "";
     loadingModal = true;
 
     try {
@@ -190,7 +196,7 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loadingModal = false;
@@ -198,7 +204,7 @@
 
   onMount(async () => {
     if (!$userFromStore) {
-      await goto('/');
+      await goto("/");
     }
 
     loading = true;
@@ -224,14 +230,14 @@
   </div>
 {:else}
   <Grid
-    title={'Permissions'}
+    title={"Permissions"}
     {columns}
     rows={items}
     limit={10}
     actions={[
-      'init-create-permission',
-      'init-update-permission',
-      'init-delete-permission',
+      "init-create-permission",
+      "init-update-permission",
+      "init-delete-permission",
     ]}
     on:message={handleMessage}
   />
@@ -250,7 +256,8 @@
           class="form-control"
           name="name"
           id="name"
-          bind:value={current.name} />
+          bind:value={current.name}
+        />
         {#if errors.name}<span class="validation">{errors.name}</span>{/if}
       </div>
       <div class="form-group">
@@ -296,24 +303,36 @@
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitUpdate}>
       <div class="form-group">
-        <label class="form-check-label" for="allowed">Allowed</label>
+        <label for="name">Name</label>
         <input
-          type="checkbox"
+          type="text"
           class="form-control"
-          name="allowed"
-          id="allowed"
-          bind:value={current.allowed}
-          bind:checked={current.allowed}
+          name="name"
+          id="name"
+          bind:value={current.name}
         />
-        {#if errors.allowed}
-          <span class="validation">{errors.allowed}</span>
-        {/if}
+        {#if errors.name}<span class="validation">{errors.name}</span>{/if}
       </div>
       <div class="form-group">
         <label for="role">Role</label>
-        <Select items={rolesList} bind:selectedValue={current.role} />
-        {#if errors.roleId}
-          <span class="validation">{errors.projectId}</span>
+        <Select
+          items={rolesList}
+          bind:value={current.role}
+          on:select={handleRoleSelect}
+        />
+        {#if errors.roleUid}
+          <span class="validation">{errors.roleUid}</span>
+        {/if}
+      </div>
+      <div class="form-group">
+        <label for="role">Api key</label>
+        <Select
+          items={apiKeyList}
+          bind:value={current.apiKey}
+          on:select={handleApiKeySelect}
+        />
+        {#if errors.apiKeyUid}
+          <span class="validation">{errors.apiKeyUid}</span>
         {/if}
       </div>
       {#if loadingModal}
