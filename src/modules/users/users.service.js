@@ -3,9 +3,12 @@ import {
 } from '../../common/store';
 
 import axios from 'axios';
+import { gql } from 'graphql-request';
 
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
+
+import { getClient } from '../../graphql';
 
 class UserService {
   constructor() {
@@ -19,32 +22,57 @@ class UserService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const { email, password, phone } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const body = {
-      companyUuid,
+    const mutation = gql`
+      mutation createUser (
+          $companyUid: String!
+          $authUid: String
+          $email: String
+          $phone: String
+          $password: String
+          $roleCode: String
+          $sendEmail: Boolean
+          $emailTemplateParams: JSONObject
+      ) {
+          createUser (
+              createUserInput: {
+                  companyUid: $companyUid
+                  authUid: $authUid
+                  email: $email
+                  phone: $phone
+                  password: $password
+                  roleCode: $roleCode
+                  sendEmail: $sendEmail
+                  emailTemplateParams: $emailTemplateParams
+              }
+          ) {
+              id
+              authUid
+              email
+              phone
+              createdAt
+              updatedAt
+          }
+      }
+    `;
+
+    const { email, phone, password } = item;
+
+    const variables = {
+      companyUid,
       email,
-      phone,
-      password
+      phone: `+57${phone}`,
+      password,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}users`,
-      method: 'post',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const data = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
+    const { createUser } = data;
 
-    return data;
+    return createUser;
   }
 
   async findAll() {
@@ -54,53 +82,44 @@ class UserService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}users/${companyUuid}`,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-    });
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const { data } = response;
+    const query = gql`
+      query getAllUsers (
+          $companyUid: String!
+          $limit: Int
+          $skip: Int
+          $q: String
+      ) {
+          getAllUsers (
+              getAllUsersInput: {
+                  companyUid: $companyUid
+                  limit: $limit
+                  skip: $skip
+                  q: $q
+              }
+          ) {
+              id
+              authUid
+              email
+              phone
+          }
+      }
+    `;
 
-    return data;
-  }
-
-  async update(item = {}) {
-    const dataForAuth = getDataForAuth();
-
-    if (!dataForAuth) {
-      throw new Error('can not get data for auth.');
-    }
-
-    const { accessToken, companyUuid } = dataForAuth;
-
-    const { email, password, phone } = item;
-
-    const body = {
-      email,
-      phone,
-      password
+    const variables = {
+      companyUid,
+      limit: 100,
+      skip: 0,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}users/${companyUuid}/${item.id}`,
-      method: 'patch',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const data = await graphQLClient.request(query, variables);
 
-    const { data } = response;
+    const { getAllUsers } = data;
 
-    return data;
+    return getAllUsers;
   }
 
   async remove(item = {}) {
@@ -110,66 +129,132 @@ class UserService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyAccessKey } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}users/${companyUuid}/${item.id}`,
-      method: 'delete',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
+
+    const mutation = gql`
+      mutation deleteUser (
+          $authUid: String!
+      ) {
+          deleteUser (
+              getOneUserInput: {
+                  authUid: $authUid
+              }
+          ) {
+              id
+              authUid
+              email
+              phone
+          }
       }
-    });
+    `;
 
-    const { data } = response;
+    const variables = {
+      authUid: item.authUid,
+    };
 
-    return data;
+    const data = await graphQLClient.request(mutation, variables);
+
+    const { deleteUser } = data;
+
+    return deleteUser;
   }
 
   async createCompanyAdmin(item = {}) {
-    const { companyUuid, email, password, phone } = item;
+    const { companyAccessKey, companyUid, email, password, phone } = item;
 
-    const body = {
-      companyUuid,
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
+
+    const mutation = gql`
+      mutation createSuperAdmin (
+          $companyUid: String!
+          $email: String!
+          $password: String!
+          $phone: String!
+      ) {
+          createSuperAdmin (
+              createSuperAdmiUserInput: {
+                  companyUid: $companyUid
+                  email: $email
+                  password: $password
+                  phone: $phone
+              }
+          ) {
+              id
+              authUid
+              email
+              phone
+              company {
+                  id
+              }
+          }
+      }
+    `;
+
+    const variables = {
+      companyUid,
       email,
       password,
-      phone
+      phone: `+57${phone}`
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}users/company-admin`,
-      method: 'post',
-      data: {
-        ...body,
-      }
-    });
+    const data = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
+    // console.log('resetPassword', data);
 
     return {
-      ...data,
-      message: 'your company admin user has been created, now you can login.'
+      ...data.createSuperAdmin,
+      message: 'your company super admin user has been created, now you can login.'
     };
   }
 
   async login(item = {}) {
-    const respose = await axios({
-      url: `${this.baseUrl}users/login-admin`,
-      method: 'post',
-      data: {
-        ...item
-      }
-    });
+    const graphQLClient = await getClient({});
 
-    const { data } = respose;
+    const mutation = gql`
+    mutation loginSuperAdmin (
+        $email: String!
+        $password: String!
+    ) {
+        loginSuperAdmin (
+            loginSuperAdminInput: {
+                email: $email
+                password: $password
+            }
+        ) {
+            companyUid
+            accessKey
+            token
+            authTime
+            issuedAtTime
+            expirationTime
+        }
+    }
+    `;
+
+    const { email, password } = item;
+
+    const variables = {
+      email,
+      password,
+    };
+
+    const data = await graphQLClient.request(mutation, variables);
+
+    // console.log('resetPassword', data);
+
+    const { loginSuperAdmin } = data;
 
     if (process.browser) {
-      localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem('user', JSON.stringify(loginSuperAdmin));
     }
 
-    userFromStore.set(data);
+    userFromStore.set(loginSuperAdmin);
 
-    return data;
+    return {
+      ...loginSuperAdmin
+    };
   }
 
   logout () {
@@ -254,6 +339,75 @@ class UserService {
 
     return {
       ...data,
+      message: 'pasword updated!'
+    };
+  }
+
+  async sendResetPasswordEmail(item = {}) {
+    const graphQLClient = await getClient({});
+
+    const { companyUuid, email } = item;   
+
+    const mutation = gql`
+      mutation sendResetPasswordEmail (
+        $companyUid: String!
+        $email: String!
+      ) {
+        sendResetUserPasswordEmail (
+          sendResetUserPasswordEmailInput: {
+            companyUid: $companyUid
+            email: $email
+          }
+        ) {
+          message
+        }
+      }
+    `;
+
+    const variables = {
+      companyUid: companyUuid,
+      email
+    };
+
+    const data = await graphQLClient.request(mutation, variables);
+
+    return {
+      ...data.sendResetUserPasswordEmail,
+    };
+  }
+
+  async resetPassword(item = {}) {
+    const graphQLClient = await getClient({});
+
+    const { code, password } = item;   
+
+    const mutation = gql`
+      mutation resetPassword (
+        $code: String!
+        $password: String!
+      ) {
+        resetUserPassword (
+          resetUserPasswordInput: {
+            code: $code
+            password: $password
+          }
+        ) {
+          url
+        }
+      }
+    `;
+
+    const variables = {
+      code,
+      password
+    };
+
+    const data = await graphQLClient.request(mutation, variables);
+
+    // console.log('resetPassword', data);
+
+    return {
+      ...data.resetUserPassword,
       message: 'pasword updated!'
     };
   }

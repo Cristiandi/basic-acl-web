@@ -16,8 +16,9 @@
 
   let items = [];
 
+  const notShowInColumns = ["uid"];
   $: columns = items.length
-    ? Object.keys(items[0]).filter((key) => key !== '')
+    ? Object.keys(items[0]).filter((key) => !notShowInColumns.includes(key))
     : [];
 
   let current = {};
@@ -169,7 +170,7 @@
     {columns}
     rows={items}
     limit={10}
-    actions={['init-create-api_key', 'init-update-api_key', 'init-delete-api_key']}
+    actions={['init-create-api_key', 'init-delete-api_key']}
     on:message={handleMessage} />
 {/if}
 
@@ -180,14 +181,14 @@
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitCreate}>
       <div class="form-group">
-        <label for="prefix">Prefix</label>
+        <label for="alias">Alias</label>
         <input
           type="text"
           class="form-control"
-          name="prefix"
-          id="prefix"
-          bind:value={current.prefix} />
-        {#if errors.prefix}<span class="validation">{errors.prefix}</span>{/if}
+          name="alias"
+          id="alias"
+          bind:value={current.alias} />
+        {#if errors.alias}<span class="validation">{errors.alias}</span>{/if}
       </div>
       {#if loadingModal}
         <div class="text-center">

@@ -41,9 +41,9 @@ export const getCookie = name => {
 export const getDataForAuth = () => {
   const userFromLocalStorage = process.browser ? JSON.parse(localStorage.getItem('user')) : null;
 
-  const { accessToken, companyUuid } = userFromLocalStorage;
+  const { accessKey: companyAccessKey, token, companyUid } = userFromLocalStorage;
 
-  return { accessToken, companyUuid };
+  return { companyAccessKey, token, companyUid };
 };
 
 /**
@@ -62,4 +62,38 @@ export const getFromObjectPathParsed = (object = {}, path = '') => {
     if (!iteraingObject) return;
   }
   return iteraingObject;
+};
+
+export const getMessageFromGraphQLError = (error) => {
+  let message = 'something went wrong...';
+
+  if (!error['response']) {
+    return message;
+  }
+ 
+  const { errors } = error['response'];
+
+  if (!errors) {
+    return message;
+  }
+
+  if (!Array.isArray(errors)) {
+    return message;
+  }
+
+  if (errors.length === 0) {
+    return message;
+  }
+
+  console.log(errors);
+
+  const { message: errorMessage } = errors[0];
+
+  if (!errorMessage) {
+    return message;
+  }
+
+  message = errorMessage;
+
+  return message;
 };

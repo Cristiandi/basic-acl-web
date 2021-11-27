@@ -1,7 +1,9 @@
-import axios from 'axios';
+import { gql } from 'graphql-request';
 
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
+
+import { getClient } from '../../graphql';
 
 class AssignedRoleService {
   constructor() {
@@ -15,19 +17,68 @@ class AssignedRoleService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyUid, companyAccessKey } = dataForAuth;
 
-    const response = await axios({
-      url: `${this.baseUrl}assigned-roles/${companyUuid}`,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
+
+    const query = gql`
+      query getAllAssignedRoles (
+          $companyUid: String!
+          $limit: Int
+          $skip: Int
+          $q: String
+      ) {
+          getAllAssignedRoles (
+              getAllAssignedRolesInput: {
+                  companyUid: $companyUid
+                  limit: $limit
+                  skip: $skip
+                  q: $q
+              }
+          ) {
+              id
+              role {
+                  id
+                  uid
+                  code
+                  name
+              }
+              user {
+                  id
+                  authUid
+                  email
+                  phone
+              }
+          }
+      }
+    `;
+
+    const variables = {
+      companyUid,
+      limit: 100,
+      skip: 0,
+    };
+
+    const { getAllAssignedRoles } = await graphQLClient.request(query, variables);
+
+    const newGetAllAssignedRoles = getAllAssignedRoles.map((item) => {
+      item.roleId = item.role.id;
+      item.roleUid = item.role.uid;
+      item.roleCode = item.role.code;
+      item.roleName = item.role.name;
+
+      item.userId = item.user.id;
+      item.userAuthUid = item.user.authUid;
+      item.userEmail = item.user.email;
+      item.userPhone = item.user.phone;
+
+      delete item.role;
+      delete item.user;
+
+      return item;
     });
 
-    const { data } = response;
-
-    return data;
+    return newGetAllAssignedRoles;
   }
 
   async create(item = {}) {
@@ -37,57 +88,72 @@ class AssignedRoleService {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyAccessKey } = dataForAuth;
 
-    const { roleId, userId, apiKeyId } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const body = {
-      companyUuid,
-      roleId,
-      userId,
-      apiKeyId
+    const mutation = gql`
+      mutation createAssignedRole (
+          $roleUid: String!
+          $userUid: String!
+      ) {
+          createAssignedRole (
+              createAssignedRoleInput: {
+                  roleUid: $roleUid
+                  userUid: $userUid
+              }
+          ) {
+              id
+          }
+      }
+    `;
+
+    const variables = {
+      roleUid: item.roleUid,
+      userUid: item.userUid,
     };
 
-    const response = await axios({
-      url: `${this.baseUrl}assigned-roles`,
-      method: 'post',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
-      },
-      data: {
-        ...body
-      }
-    });
+    const { createAssignedRole } = await graphQLClient.request(mutation, variables);
 
-    const { data } = response;
-
-    return data;
+    return createAssignedRole;
   }
 
   async remove(item = {}) {
+    console.log('item', item);
     const dataForAuth = getDataForAuth();
 
     if (!dataForAuth) {
       throw new Error('can not get data for auth.');
     }
 
-    const { accessToken, companyUuid } = dataForAuth;
+    const { companyAccessKey } = dataForAuth;
 
-    const { id } = item;
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
 
-    const response = await axios({
-      url: `${this.baseUrl}assigned-roles/${companyUuid}/${id}`,
-      method: 'delete',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'company-uuid': companyUuid,
+    const mutation = gql`
+      mutation deleteAssignedRole (
+          $roleUid: String!
+          $userUid: String!
+      ) {
+          deleteAssignedRole (
+              deleteAssignedRoleInput: {
+                  roleUid: $roleUid
+                  userUid: $userUid
+              }
+          ) {
+              id
+          }
       }
-    });
+    `;
 
-    const { data } = response;
+    const variables = {
+      roleUid: item.roleUid,
+      userUid: item.userAuthUid,
+    };
 
-    return data;
+    const { deleteAssignedRole } = await graphQLClient.request(mutation, variables);
+
+    return deleteAssignedRole;
   }
 }
 

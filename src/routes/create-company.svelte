@@ -5,7 +5,7 @@
 
   import { companiesService } from '../modules/companies/companies.service.js';
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getFromObjectPathParsed, getMessageFromGraphQLError } from '../common/utils.js';
 
   import { createSchema } from '../modules/companies/schemas/create.schema.js';
 
@@ -28,11 +28,11 @@
     loading = true;
 
     try {
-      if (!company.serviceAccountString) {
-        throw new Error('serviceAccount is required.');
+      if (!company.firebaseAdminConfigString) {
+        throw new Error('firebaseAdminConfigString is required.');
       }
 
-      company.serviceAccount = JSON.parse(company.serviceAccountString);
+      company.firebaseAdminConfig = JSON.parse(company.firebaseAdminConfigString);
 
       if (!company.firebaseConfigString) {
         throw new Error('firebaseConfig is required.');
@@ -48,6 +48,7 @@
     try {
       await createSchema.validate(company, { abortEarly: false });
     } catch (error) {
+      console.log(error);
       errors = {
         ...extractErrors(error),
       };
@@ -62,7 +63,7 @@
     } catch (error) {
       console.error(error);
       successful = false;
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loading = false;
@@ -131,28 +132,16 @@
             {#if errors.name}<span class="validation">{errors.name}</span>{/if}
           </div>
           <div class="form-group">
-            <input
-              type="text"
-              class="form-control"
-              name="countryCode"
-              id="countryCode"
-              placeholder="Country code"
-              bind:value={company.countryCode} />
-            {#if errors.countryCode}
-              <span class="validation">{errors.countryCode}</span>
-            {/if}
-          </div>
-          <div class="form-group">
             <textarea
               type="text"
               class="form-control"
-              name="serviceAccount"
-              id="serviceAccount"
+              name="firebaseAdminConfig"
+              id="firebaseAdminConfig"
               rows="5"
               placeholder="Put her the service account JSON from firebase"
-              bind:value={company.serviceAccountString} />
-            {#if errors.serviceAccount}
-              <span class="validation">{errors.serviceAccount}</span>
+              bind:value={company.firebaseAdminConfigString} />
+            {#if errors.firebaseAdminConfig}
+              <span class="validation">{errors.firebaseAdminConfig}</span>
             {/if}
           </div>
           <div class="form-group">

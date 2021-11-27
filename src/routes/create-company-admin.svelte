@@ -5,7 +5,7 @@
 
   import { userService } from '../modules/users/users.service.js';
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getMessageFromGraphQLError } from '../common/utils.js';
 
   import { createCompanyAdminSchema } from '../modules/users/schemas/create-company-admin.schema.js';
 
@@ -44,7 +44,7 @@
       message = result.message;
     } catch (error) {
       successful = false;
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loading = false;
@@ -105,11 +105,21 @@
             <input
               type="text"
               class="form-control"
-              name="companyUuid"
-              id="companyUuid"
-              placeholder="Company UUID"
-              bind:value={user.companyUuid} />
-            {#if errors.companyUuid}<span class="validation">{errors.companyUuid}</span>{/if}
+              name="companyUid"
+              id="companyUid"
+              placeholder="Company UID"
+              bind:value={user.companyUid} />
+            {#if errors.companyUid}<span class="validation">{errors.companyUid}</span>{/if}
+          </div>
+          <div class="form-group">
+            <input
+              type="text"
+              class="form-control"
+              name="companyAccessKey"
+              id="companyAccessKey"
+              placeholder="Company access key"
+              bind:value={user.companyAccessKey} />
+            {#if errors.companyAccessKey}<span class="validation">{errors.companyAccessKey}</span>{/if}
           </div>
           <div class="form-group">
             <input
@@ -149,7 +159,7 @@
               class="form-control"
               name="passwordConfirm"
               id="passwordConfirm"
-              placeholder="Password confirm"
+              placeholder="Confirm password"
               bind:value={user.passwordConfirm} />
             {#if errors.passwordConfirm}
               <span class="validation">{errors.passwordConfirm}</span>

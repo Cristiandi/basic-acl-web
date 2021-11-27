@@ -9,15 +9,16 @@
 
   import { roleService } from '../modules/roles/role.service';
 
-  import { extractErrors, getFromObjectPathParsed } from '../common/utils.js';
+  import { extractErrors, getMessageFromGraphQLError } from '../common/utils.js';
 
   import { createSchema } from '../modules/roles/schemas/create.schema';
   import { updateSchema } from '../modules/roles/schemas/update.schema.js';
 
   let roles = [];
 
+  const notShowInColumns = ['uid'];
   $: columns = roles.length
-    ? Object.keys(roles[0]).filter((key) => key !== '')
+    ? Object.keys(roles[0]).filter((key) => !notShowInColumns.includes(key))
     : [];
 
   let current = {};
@@ -113,7 +114,7 @@
       isUpdateModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loadingModal = false;
@@ -130,7 +131,7 @@
       isDeteleModalOpen = false;
       current = {};
     } catch (error) {
-      message = getFromObjectPathParsed(error, 'response.data.message');
+      message = getMessageFromGraphQLError(error);
     }
 
     loadingModal = false;
@@ -182,6 +183,16 @@
       <div slot="content">
         <form name="form" on:submit|preventDefault={handleSubmitCreate}>
           <div class="form-group">
+            <label for="code">Code</label>
+            <input
+              type="text"
+              class="form-control"
+              name="code"
+              id="code"
+              bind:value={current.code} />
+            {#if errors.code}<span class="validation">{errors.code}</span>{/if}
+          </div>
+          <div class="form-group">
             <label for="name">Name</label>
             <input
               type="text"
@@ -192,14 +203,14 @@
             {#if errors.name}<span class="validation">{errors.name}</span>{/if}
           </div>
           <div class="form-group">
-            <label for="code">Code</label>
+            <label for="code">Description</label>
             <input
               type="text"
               class="form-control"
-              name="code"
-              id="code"
-              bind:value={current.code} />
-            {#if errors.code}<span class="validation">{errors.code}</span>{/if}
+              name="description"
+              id="description"
+              bind:value={current.description} />
+            {#if errors.description}<span class="validation">{errors.description}</span>{/if}
           </div>
           {#if loadingModal}
             <div class="text-center">
@@ -232,6 +243,16 @@
   <div slot="content">
     <form name="form" on:submit|preventDefault={handleSubmitUpdate}>
       <div class="form-group">
+        <label for="code">Code</label>
+        <input
+          type="text"
+          class="form-control"
+          name="code"
+          id="code"
+          bind:value={current.code} />
+        {#if errors.code}<span class="validation">{errors.code}</span>{/if}
+      </div>
+      <div class="form-group">
         <label for="name">Name</label>
         <input
           type="text"
@@ -242,14 +263,14 @@
         {#if errors.name}<span class="validation">{errors.name}</span>{/if}
       </div>
       <div class="form-group">
-        <label for="code">Code</label>
+        <label for="code">Description</label>
         <input
           type="text"
           class="form-control"
-          name="code"
-          id="code"
-          bind:value={current.code} />
-        {#if errors.code}<span class="validation">{errors.code}</span>{/if}
+          name="description"
+          id="description"
+          bind:value={current.description} />
+        {#if errors.description}<span class="validation">{errors.description}</span>{/if}
       </div>
       {#if loadingModal}
         <div class="text-center">

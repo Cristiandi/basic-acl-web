@@ -2,8 +2,7 @@ import * as yup from 'yup';
 
 export const createSchema = yup.object().shape({
   name: yup.string().required().min(5),
-  countryCode: yup.string().required().min(2),
-  serviceAccount: yup.object().shape({
+  firebaseAdminConfig: yup.object().shape({
     type: yup.string().required(),
     project_id: yup.string().required(),
     private_key_id: yup.string().required(),
