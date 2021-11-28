@@ -113,16 +113,6 @@
           </div>
           <div class="form-group">
             <input
-              type="text"
-              class="form-control"
-              name="companyAccessKey"
-              id="companyAccessKey"
-              placeholder="Company access key"
-              bind:value={user.companyAccessKey} />
-            {#if errors.companyAccessKey}<span class="validation">{errors.companyAccessKey}</span>{/if}
-          </div>
-          <div class="form-group">
-            <input
               type="email"
               class="form-control"
               name="email"

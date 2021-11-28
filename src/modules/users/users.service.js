@@ -162,9 +162,9 @@ class UserService {
   }
 
   async createCompanyAdmin(item = {}) {
-    const { companyAccessKey, companyUid, email, password, phone } = item;
+    const { companyUid, email, password, phone } = item;
 
-    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
+    const graphQLClient = await getClient({});
 
     const mutation = gql`
       mutation createSuperAdmin (
