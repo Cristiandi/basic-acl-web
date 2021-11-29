@@ -3,7 +3,6 @@
 
   import { onMount } from 'svelte';
   import { goto } from '@sapper/app';
-  import { window } from 'lodash/_freeGlobal';
 
   import Grid from '../components/Grid/Grid.svelte';
   import Modal from '../components/Modal/Modal.svelte';
@@ -28,6 +27,7 @@
   let message = '';
   let loading = false;
   let loadingCreateUsers = false;
+  let loadingShowAccessKeys = false;
   let loadingModal = false;
 
   let isUpdateModalOpen = false;
@@ -82,6 +82,8 @@
   }
 
   async function handleCreateUsersFromFirebaseClick(event) {
+    event.preventDefault();
+
     let localMessage = '';
     loadingCreateUsers = true;
     try {
@@ -95,6 +97,24 @@
       window.pushToast(localMessage, 'error');
     }
     loadingCreateUsers = false;
+  }
+
+  function handleShowAccessKeysClick(event) {
+    event.preventDefault();
+
+    let localMessage = '';
+    loadingShowAccessKeys = true;
+    try {
+      const accessKey = companiesService.getCompanyAccessKey();
+      
+
+      window.pushToast(`your company's access key is: ${accessKey}`, 'success');
+    } catch (error) {
+      localMessage = getMessageFromGraphQLError(error);
+
+      window.pushToast(localMessage, 'error');
+    }
+    loadingShowAccessKeys = false;
   }
 
   onMount(async () => {
@@ -134,6 +154,18 @@
           class="btn btn-primary"
           on:click={handleCreateUsersFromFirebaseClick}>Create users from
           firebase</button>
+      {/if}
+      {#if loadingShowAccessKeys}
+        <div class="text-left">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      {:else}
+        <button
+          type="button"
+          class="btn btn-primary"
+          on:click={handleShowAccessKeysClick}>Show access key</button>
       {/if}
     </div>
   </div>
