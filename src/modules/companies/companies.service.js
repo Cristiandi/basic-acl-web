@@ -1,5 +1,10 @@
+import {
+  user as userFromStore
+} from '../../common/store';
+
 import axios from 'axios';
 import { gql } from 'graphql-request';
+import { get } from 'svelte/store';
 
 import { getDataForAuth } from '../../common/utils';
 import { API_URL } from '../../config';
@@ -166,6 +171,12 @@ class CompanyService {
     const { data } = response;
 
     return data;
+  }
+
+  getCompanyAccessKey() {
+    const readedUser = get(userFromStore);
+
+    return userFromStore ? readedUser.accessKey : undefined;
   }
 }
 
