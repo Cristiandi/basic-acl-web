@@ -6,6 +6,7 @@
     plus as plusIcon,
     pencil as penIcon,
     times as timesIcom,
+    eye as eyeIcon,
   } from 'svelte-awesome/icons';
 
   const dispatch = createEventDispatcher();
@@ -180,6 +181,8 @@
                                 <Icon data={penIcon} scale={1} />
                               {:else if action.includes('delete')}
                                 <Icon data={timesIcom} scale={1} />
+                                {:else if action.includes('preview')}
+                                  <Icon data={eyeIcon} scale={1} />
                               {:else}{action}{/if}
                             </button>
                           </span>

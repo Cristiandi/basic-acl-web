@@ -260,6 +260,45 @@ class EmailTemplateService {
 
     return deleteEmailTemplate;
   }
+
+  async preview(item = {}) {
+    const dataForAuth = getDataForAuth();
+
+    if (!dataForAuth) {
+      throw new Error('can not get data for auth.');
+    }
+
+    const { companyAccessKey } = dataForAuth;
+
+    const graphQLClient = await getClient({ 'access-key': companyAccessKey });
+    
+    const mutation = gql`
+      mutation previewEmailTemplate (
+        $uid: String!,
+        $parameters: JSONObject
+      ) {
+          previewEmailTemplate (
+              getOneEmailTemplateInput: {
+                  uid: $uid,
+              },
+              previewEmailTemplateInput: {
+                  parameters: $parameters
+              }
+          ) {
+              html
+          }
+      }
+    `;
+
+    const variables = {
+      uid: item.uid,
+      parameters: item.parameters || {},
+    };
+
+    const { previewEmailTemplate } = await graphQLClient.request(mutation, variables);
+
+    return previewEmailTemplate;
+  }
 }
 
 export const emailTemplateService = new EmailTemplateService();
