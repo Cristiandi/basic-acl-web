@@ -64,4 +64,5 @@
   <a href="/assigned-roles" on:click={closeSideBar}>Assigned roles</a>
   <a href="/api-keys" on:click={closeSideBar}>API keys</a>
   <a href="/permissions" on:click={closeSideBar}>Permissions</a>
+  <a href="/email-templates" on:click={closeSideBar}>Email templates</a>
 </div>
