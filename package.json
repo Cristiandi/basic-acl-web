@@ -22,7 +22,7 @@
     "lodash": "4.17.21",
     "polka": "next",
     "sirv": "1.0.11",
-    "svelte-awesome": "2.3.2",
+    "svelte-awesome": "2.4.4",
     "yup": "0.32.11"
   },
   "devDependencies": {
