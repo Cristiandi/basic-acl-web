@@ -214,11 +214,13 @@ class UserService {
 
     const mutation = gql`
     mutation loginSuperAdmin (
+        $companyUid: String!
         $email: String!
         $password: String!
     ) {
         loginSuperAdmin (
             loginSuperAdminInput: {
+                companyUid: $companyUid
                 email: $email
                 password: $password
             }
@@ -233,9 +235,10 @@ class UserService {
     }
     `;
 
-    const { email, password } = item;
+    const { companyUid, email, password } = item;
 
     const variables = {
+      companyUid,
       email,
       password,
     };

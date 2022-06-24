@@ -32,12 +32,16 @@
       errors = {
         ...extractErrors(error),
       };
+
+      console.log(errors);
+
       loading = false;
       return;
     }
 
     try {
       await userService.login({
+        companyUid: user.companyUid,
         email: user.email,
         password: user.password,
       });
@@ -104,6 +108,18 @@
       <div class="card card-container">
         <form name="form" on:submit|preventDefault={handleSubmit}>
           <h5 class="card-title">Login</h5>
+          <div class="form-group">
+            <input
+              type="text"
+              class="form-control"
+              name="companyUid"
+              id="companyUid"
+              placeholder="Company UID"
+              bind:value={user.companyUid} />
+            {#if errors.password}
+              <span class="validation">{errors.companyUid}</span>
+            {/if}
+          </div>
           <div class="form-group">
             <input
               type="email"
