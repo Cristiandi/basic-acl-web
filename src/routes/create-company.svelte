@@ -28,27 +28,32 @@
     loading = true;
 
     try {
+      if (!company.name) {
+        throw new Error('Compnay name is required.');
+      }
+
       if (!company.firebaseAdminConfigString) {
-        throw new Error('firebaseAdminConfigString is required.');
+        throw new Error('service account JSON is required.');
       }
 
       company.firebaseAdminConfig = JSON.parse(company.firebaseAdminConfigString);
 
       if (!company.firebaseConfigString) {
-        throw new Error('firebaseConfig is required.');
+        throw new Error('firebase config JSON is required.');
       }
 
       company.firebaseConfig = JSON.parse(company.firebaseConfigString);
     } catch (error) {
+      console.log(error);
       message = error.message || 'something went wrong.';
       loading = false;
+      successful = false;
       return;
     }
 
     try {
       await createSchema.validate(company, { abortEarly: false });
     } catch (error) {
-      console.log(error);
       errors = {
         ...extractErrors(error),
       };
@@ -138,7 +143,7 @@
               name="firebaseAdminConfig"
               id="firebaseAdminConfig"
               rows="5"
-              placeholder="Put her the service account JSON from firebase"
+              placeholder="Put here the service account JSON from firebase"
               bind:value={company.firebaseAdminConfigString} />
             {#if errors.firebaseAdminConfig}
               <span class="validation">{errors.firebaseAdminConfig}</span>
@@ -151,7 +156,7 @@
               name="firebaseConfig"
               id="firebaseConfig"
               rows="5"
-              placeholder="Put her the firebase config JSON"
+              placeholder="Put here the firebase config JSON"
               bind:value={company.firebaseConfigString} />
             {#if errors.firebaseConfig}
               <span class="validation">{errors.firebaseConfig}</span>

@@ -95,7 +95,7 @@ class CompanyService {
 
     return {
       ...createCompany,
-      message: 'company created, please create your company admin.'
+      message: `company created, PLEASE use the company UID ${createCompany.uid} to create your company admin.`
     };
   }
 
