@@ -18,7 +18,7 @@
     "compression": "1.7.4",
     "dotenv": "16.0.3",
     "graphql": "16.6.0",
-    "graphql-request": "5.0.0",
+    "graphql-request": "5.1.0",
     "lodash": "4.17.21",
     "polka": "next",
     "sirv": "1.0.11",
