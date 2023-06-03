@@ -108,7 +108,7 @@ class EmailTemplateService {
     const { uid } = createEmailTemplate;
 
     const { file } = item;
-    
+
     if (uid && file) {
 
       const uploadFileMutation = gql`
@@ -132,7 +132,9 @@ class EmailTemplateService {
         file
       };
 
-      await graphQLClient.request(uploadFileMutation, variables);
+      await graphQLClient.request(uploadFileMutation, variables, {
+        'x-apollo-operation-name': 'uploadEmailTemplate'
+      });
     }
 
     return createEmailTemplate;
@@ -271,7 +273,7 @@ class EmailTemplateService {
     const { companyAccessKey } = dataForAuth;
 
     const graphQLClient = await getClient({ 'access-key': companyAccessKey });
-    
+
     const mutation = gql`
       mutation previewEmailTemplate (
         $uid: String!,
