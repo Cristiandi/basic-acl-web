@@ -26,11 +26,11 @@
     "yup": "1.2.0"
   },
   "devDependencies": {
-    "@babel/core": "7.22.1",
+    "@babel/core": "7.22.6",
     "@babel/plugin-syntax-dynamic-import": "7.8.3",
-    "@babel/plugin-transform-runtime": "7.22.4",
-    "@babel/preset-env": "7.22.4",
-    "@babel/runtime": "7.22.3",
+    "@babel/plugin-transform-runtime": "7.22.6",
+    "@babel/preset-env": "7.22.6",
+    "@babel/runtime": "7.22.6",
     "@rollup/plugin-babel": "6.0.3",
     "@rollup/plugin-commonjs": "23.0.7",
     "@rollup/plugin-node-resolve": "15.1.0",
