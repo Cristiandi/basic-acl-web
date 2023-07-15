@@ -1,15 +1,12 @@
 import { gql } from 'graphql-request';
 
 import { getDataForAuth } from '../../common/utils';
-import { API_URL } from '../../config';
+import { GRAPHQL_ENDPOINT } from '../../config';
 
 import { getClient } from '../../graphql';
+import axios from 'axios';
 
 class EmailTemplateService {
-  constructor() {
-    this.baseUrl = API_URL;
-  }
-
   async findAll() {
     const dataForAuth = getDataForAuth();
 
@@ -111,30 +108,13 @@ class EmailTemplateService {
 
     if (uid && file) {
 
-      const uploadFileMutation = gql`
-        mutation uploadEmailTemplate (
-          $uid: String!,
-          $file: Upload!
-        ) {
-          uploadEmailTemplate (
-            getOneEmailTemplateInput: {
-              uid: $uid
-            }
-            file: $file
-          ) {
-            id
-          }
-        }
-      `;
+      // form-data request
+      const formData = new FormData();
+      formData.append('operations', JSON.stringify({ query: 'mutation ($file: Upload!) { uploadEmailTemplate(file: $file, getOneEmailTemplateInput: { uid: "' + uid + '" }) { uid } }', variables: { file: null } }));
+      formData.append('map', JSON.stringify({ '0': ['variables.file'] }));
+      formData.append('0', file, file.name);
 
-      const variables = {
-        uid,
-        file
-      };
-
-      await graphQLClient.request(uploadFileMutation, variables, {
-        'x-apollo-operation-name': 'uploadEmailTemplate'
-      });
+      await axios.post(GRAPHQL_ENDPOINT, formData, { headers: { 'access-key': companyAccessKey, 'x-apollo-operation-name': 'uploadEmailTemplate' } });
     }
 
     return createEmailTemplate;
@@ -195,28 +175,13 @@ class EmailTemplateService {
 
     if (uid && file) {
 
-      const uploadFileMutation = gql`
-        mutation uploadEmailTemplate (
-          $uid: String!,
-          $file: Upload!
-        ) {
-          uploadEmailTemplate (
-            getOneEmailTemplateInput: {
-              uid: $uid
-            }
-            file: $file
-          ) {
-            id
-          }
-        }
-      `;
+      // form-data request
+      const formData = new FormData();
+      formData.append('operations', JSON.stringify({ query: 'mutation ($file: Upload!) { uploadEmailTemplate(file: $file, getOneEmailTemplateInput: { uid: "' + uid + '" }) { uid } }', variables: { file: null } }));
+      formData.append('map', JSON.stringify({ '0': ['variables.file'] }));
+      formData.append('0', file, file.name);
 
-      const variables = {
-        uid,
-        file
-      };
-
-      await graphQLClient.request(uploadFileMutation, variables);
+      await axios.post(GRAPHQL_ENDPOINT, formData, { headers: { 'access-key': companyAccessKey, 'x-apollo-operation-name': 'uploadEmailTemplate' } });
     }
 
     return updateEmailTemplate;
